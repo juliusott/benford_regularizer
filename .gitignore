@@ -51,25 +51,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
 
 # PyBuilder
 target/
@@ -114,8 +96,7 @@ venv.bak/
 .spyderproject
 .spyproject
 
-# Rope project settings
-.ropeproject
+
 
 # mkdocs documentation
 /site
@@ -127,3 +108,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#numpy files
+*.npy
+
+#torch checkpoints
+*.pt
+
+#training data and model checkpoints
+checkpoint/
+data/
