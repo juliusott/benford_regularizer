@@ -48,9 +48,9 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 
 ### Example command for transfer learning experiments from ImageNet to Cifar10
 ```python
-python run_experiments_transfer_learning.py --model densenet121 --epochs 250 --seed 150195
+python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --seed 150195
 
-python run_experiments_transfer_learning.py --model densenet121 --epochs 250 --seed 150195 --benford --scale 0.1
+python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --seed 150195 --benford --scale 0.1
 
 ```
 
