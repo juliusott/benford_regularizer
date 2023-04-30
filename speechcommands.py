@@ -268,10 +268,10 @@ def data_processing(data,data_type,labels,stft_transform,args,path_to_index=None
     targets = torch.stack(targets)
     spectrograms = nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).unsqueeze(1).transpose(2, 3).contiguous()
     if data_type == 'train':
-        return spectrograms, targets
+        return torch.abs(spectrograms), targets
     else:
         indexes = torch.stack(indexes)
-        return spectrograms, targets,indexes
+        return torch.abs(spectrograms), targets,indexes
 
 def make_relativepath_index(file_paths):
     path_to_index = {}
