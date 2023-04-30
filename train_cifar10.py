@@ -69,12 +69,12 @@ def main(args):
     ])
 
     trainset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=False, transform=transform_train)
+        root='./data', train=True, download=True, transform=transform_train)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=128, shuffle=True, num_workers=2, worker_init_fn=seed_worker, generator=g)
 
     testset = torchvision.datasets.CIFAR10(
-        root='./data', train=False, download=False, transform=transform_test)
+        root='./data', train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=100, shuffle=False, num_workers=2, worker_init_fn=seed_worker, generator=g)
 
@@ -120,28 +120,7 @@ def main(args):
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
                         momentum=0.9, weight_decay=5e-4)
 
-    
-    if os.environ.get('JO_UUID') is not None:
-    # load weights
-        checkpoint_file_name=os.environ.get('HOME') + "/job.orchistrated." + os.environ.get('JO_UUID'+ ".pth")
-        if int(os.environ.get('JO_RESTART')) > 1:
-            print("loading weights")
-            if os.path.exists(checkpoint_file_name):
-                check = torch.load(checkpoint_file_name)
-                model_state_dict = checkpoint['model_state_dict']
-                model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
-                model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
-                net.load_state_dict(model_state_dict)
-                start_epoch = check["epoch"]
-                optimizer.load_state_dict("optimizer_state_dict")
-            else:
-                print("checkpoint file does not exist.")
-        else:
-            print("First run - do not load any weights")
-    else:
-        checkpoint_file_name="/dev/null"
 
-    print("checkpoint file:" + checkpoint_file_name)
 
 
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120, 160], gamma=0.1)
@@ -234,21 +213,6 @@ def main(args):
                 os.mkdir(f'{save_dir}checkpoint')
             torch.save(state, f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
             best_acc = acc
-        else:
-            if os.environ.get('JO_UUID') is not None:
-                print('Callback:on_epoch_end')
-                net.save_weights(checkpoint_file_name)
-                print('Saving after epoch..')
-                net_to_save = net.module if isinstance(net, nn.DataParallel) else net
-
-                state = {
-                    'model_state_dict': net_to_save.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'acc': acc,
-                    'loss': test_loss/total,
-                    'epoch': epoch
-                }
-                torch.save(checkpoint_file_name)
         mlh = compute_kl(net)
 
         return acc, test_loss/total, best_acc, mlh

@@ -1,4 +1,4 @@
-from classification_cifar10 import main
+from train_cifar10 import main
 import argparse
 
 models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', "renext"]

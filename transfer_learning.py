@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 import torchvision
@@ -85,7 +84,7 @@ def main(args):
     else:
         raise(NotImplementedError)
 
-    for name, layer in net.named_modules():
+    for _, layer in net.named_modules():
         layer.requires_grad = False
 
     num_ftrs = net.fc.in_features
@@ -201,7 +200,7 @@ def main(args):
 
         for epoch in range(start_epoch, start_epoch+args.epochs):
             if train_benford:
-                mlh = train_mlh(epoch, n_quantiles=100000)
+                _ = train_mlh(epoch, n_quantiles=100000)
                 benford_epochs.append(epoch)
             else:
                 train_loss, train_acc = train(epoch)

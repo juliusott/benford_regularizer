@@ -6,7 +6,6 @@
 import os
 import sys
 import time
-import math
 import numpy as np
 import scipy.stats as stats
 
@@ -15,9 +14,7 @@ import torch
 import torch.nn.init as init
 
 def mean_confidence_interval(data, confidence=0.95):
-    """
-    Returns: mean accuracy and confidence interval
-    """
+    """Returns mean accuracy and confidence interval."""
     
     a = 1.0 * np.array(data)
     n = len(a)
@@ -44,12 +41,12 @@ class EarlyStopper:
         return False
 
 def get_mean_and_std(dataset):
-    '''Compute the mean and std value of dataset.'''
+    """Compute the mean and std value of dataset."""
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)
     mean = torch.zeros(3)
     std = torch.zeros(3)
     print('==> Computing mean and std..')
-    for inputs, targets in dataloader:
+    for inputs, _ in dataloader:
         for i in range(3):
             mean[i] += inputs[:,i,:,:].mean()
             std[i] += inputs[:,i,:,:].std()
@@ -58,7 +55,7 @@ def get_mean_and_std(dataset):
     return mean, std
 
 def init_params(net):
-    '''Init layer parameters.'''
+    """Init layer parameters."""
     for m in net.modules():
         if isinstance(m, nn.Conv2d):
             init.kaiming_normal(m.weight, mode='fan_out')
@@ -89,10 +86,10 @@ def progress_bar(current, total, msg=None):
     rest_len = int(TOTAL_BAR_LENGTH - cur_len) - 1
 
     sys.stdout.write(' [')
-    for i in range(cur_len):
+    for _ in range(cur_len):
         sys.stdout.write('=')
     sys.stdout.write('>')
-    for i in range(rest_len):
+    for _ in range(rest_len):
         sys.stdout.write('.')
     sys.stdout.write(']')
 
@@ -109,11 +106,11 @@ def progress_bar(current, total, msg=None):
 
     msg = ''.join(L)
     sys.stdout.write(msg)
-    for i in range(term_width-int(TOTAL_BAR_LENGTH)-len(msg)-3):
+    for _ in range(term_width-int(TOTAL_BAR_LENGTH)-len(msg)-3):
         sys.stdout.write(' ')
 
     # Go back to the center of the bar.
-    for i in range(term_width-int(TOTAL_BAR_LENGTH/2)+2):
+    for _ in range(term_width-int(TOTAL_BAR_LENGTH/2)+2):
         sys.stdout.write('\b')
     sys.stdout.write(' %d/%d ' % (current+1, total))
 
