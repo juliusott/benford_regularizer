@@ -118,3 +118,4 @@ dmypy.json
 #training data and model checkpoints
 checkpoint/
 data/
+python_env/
