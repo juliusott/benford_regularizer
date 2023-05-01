@@ -259,13 +259,13 @@ def main(args):
             if epoch % 10 == 0:
                 np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
                 np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
-                np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
+                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
                 np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
 
         np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
         np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
-        np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
+        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
 
 if __name__=="__main__":
