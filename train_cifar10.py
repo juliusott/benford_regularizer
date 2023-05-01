@@ -141,7 +141,7 @@ def main(args):
 
 
     # Training
-    def train_mlh(epoch, n_quantiles, scale=1):
+    def train_bl(epoch, n_quantiles, scale=1):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
         for _ in range(10):
             net.train()
@@ -149,9 +149,9 @@ def main(args):
             q_loss = quantile_loss(model=net, device=device, n_quantiles=n_quantiles) * scale
             q_loss.backward()
             optimizer2.step()
-            mlh = compute_kl(net)
-            print('Train Epoch: {} mlh {:.5f} loss {:.5f}'.format(epoch, mlh, q_loss.item()))
-        return mlh
+            bl_kl = compute_kl(net)
+            print('Train Epoch: {} bl_kl {:.5f} loss {:.5f}'.format(epoch, bl_kl, q_loss.item()))
+        return bl_kl
 
     def train(epoch):
         print('\n Epoch: %d' % epoch)
@@ -213,30 +213,33 @@ def main(args):
                 os.mkdir(f'{save_dir}checkpoint')
             torch.save(state, f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
             best_acc = acc
-        mlh = compute_kl(net)
+        bl_kl = compute_kl(net)
 
-        return acc, test_loss/total, best_acc, mlh
+        return acc, test_loss/total, best_acc, bl_kl
 
-    test_losss, test_accs = [], []
+    test_losss, test_accs , bl_kls = [], [], []
 
     if not args.benford:
 
         for epoch in range(start_epoch, start_epoch+args.epochs):
             train_loss, train_acc = train(epoch)
-            test_acc, test_loss, best_acc, _ = test(epoch, best_acc)
+            test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
             scheduler.step()
             test_losss.append(test_loss)
             test_accs.append(test_acc)
+            bl_kls.append(bl_kl)
             if epoch % 10 == 0:
                 np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(test_losss))
                 np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(test_accs))
+                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
         np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(test_losss))
         np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(test_accs))
+        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
     else:
 
-        test_losssb, test_accsb, mlhs = [], [], []
+        test_losssb, test_accsb, bl_kls = [], [], []
         benford_epochs = []
         train_benford = False
         if args.resume:
@@ -244,25 +247,25 @@ def main(args):
 
         for epoch in range(start_epoch, start_epoch+args.epochs):
             if train_benford:
-                mlh = train_mlh(epoch, n_quantiles=100000, scale=args.scale)
+                _ = train_bl(epoch, n_quantiles=100000, scale=args.scale)
                 benford_epochs.append(epoch)
             else:
                 train_loss, train_acc = train(epoch)
-            test_acc, test_loss, best_acc, mlh = test(epoch, best_acc)
+            test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
             train_benford = early_stopper.early_stop(test_loss)
             test_losssb.append(test_loss)
             test_accsb.append(test_acc)
-            mlhs.append(mlh)
+            bl_kls.append(bl_kl)
             if epoch % 10 == 0:
                 np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
                 np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
-                np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(mlhs))
+                np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
                 np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
 
         np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
         np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
-        np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(mlhs))
+        np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
 
 if __name__=="__main__":
