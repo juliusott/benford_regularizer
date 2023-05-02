@@ -40,7 +40,7 @@ def set_seed(seed: int = 42) -> None:
 
 def main(args):
     
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device =  'cuda' if torch.cuda.is_available() else 'cpu'
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
     best_acc = 0  # best test accuracy
     # Data
@@ -135,7 +135,7 @@ def main(args):
         model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
         net.load_state_dict(model_state_dict)
         print("--------------loaded model state_dict---------")
-        # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         best_acc = checkpoint['acc']
         print("start from accuracy: ", best_acc)
 

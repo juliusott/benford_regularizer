@@ -41,12 +41,11 @@ def bin_percent(tensor):
 @torch.no_grad()
 def compute_kl(model):
     model_weights = []
-    for name, param in model.named_parameters():
+    for _name, param in model.named_parameters():
         model_weights.append(torch.flatten(param))
     model_weights = torch.cat(model_weights, dim=0)
     b = bin_percent(model_weights)
     kl_benford = discrete_kl(b.numpy()[1:])
-    # mse_mlh = np.sum(np.abs(b.numpy()[1:] - benford))
     return kl_benford
 
 def quantile_loss(model, device, n_quantiles):
@@ -56,12 +55,12 @@ def quantile_loss(model, device, n_quantiles):
     model_weights = torch.cat(model_weights, dim=0)
     n_quantiles = int(model_weights.shape[0] * n_quantiles)
     model_weights = diffmod1(torch.log10(torch.abs(model_weights)), device)
-    uni = torch.distributions.uniform.Uniform(torch.Tensor([0.0]), torch.Tensor([1.0]))
-    uni_samples = uni.sample(sample_shape = model_weights.shape).to(device)
+    # uni = torch.distributions.uniform.Uniform(torch.Tensor([0.0]), torch.Tensor([1.0]))
+    # uni_samples = uni.sample(sample_shape = model_weights.shape).to(device)
     quantile_steps = torch.linspace(start=0,end=1, steps=n_quantiles).to(device)
     model_quantiles = torch.quantile(model_weights, quantile_steps)
-    uniform_quantiles = torch.quantile(uni_samples, quantile_steps)
-    loss = F.mse_loss(model_quantiles, uniform_quantiles)
+    # uniform_quantiles = torch.quantile(uni_samples, quantile_steps)
+    loss = F.mse_loss(model_quantiles, quantile_steps)
     return loss
 
 def diffmod1(x, device):

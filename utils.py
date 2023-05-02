@@ -1,8 +1,8 @@
-'''Some helper functions for PyTorch, including:
+"""Some helper functions for PyTorch, including:
     - get_mean_and_std: calculate the mean and std value of dataset.
     - msr_init: net parameter initialization.
     - progress_bar: progress bar mimic xlua.progress.
-'''
+"""
 import os
 import sys
 import time
@@ -14,7 +14,7 @@ import torch
 import torch.nn.init as init
 
 def mean_confidence_interval(data, confidence=0.95):
-    """Returns mean accuracy and confidence interval."""
+    """Mean accuracy and confidence interval."""
     
     a = 1.0 * np.array(data)
     n = len(a)
@@ -73,7 +73,8 @@ def init_params(net):
 try:
     _, term_width = os.popen('stty size', 'r').read().split()
     term_width = int(term_width)
-except:
+except Exception as e:
+    print(e)
     term_width = 170
 
 TOTAL_BAR_LENGTH = 65.
