@@ -23,6 +23,7 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --benfo
 
 ```python
 python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --scale 0.1
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --scale 0.1 --finetune
 
 ```
 ### arguments
@@ -40,6 +41,8 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 - ```-- benford(Optional, default:False)``` : If Benford optimization should be used
 
 - ```-- resume (Optional, default:False)``` : Training from checkpoint
+
+- ```-- finetune (Optional, default:False)``` : Training from best model starting with benford iteration
 
 - ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
 

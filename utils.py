@@ -40,6 +40,12 @@ class EarlyStopper:
                 return True
         return False
 
+    def get_count(self):
+        return self.counter
+    
+    def set_count(self, count):
+        self.counter = count
+
 def get_mean_and_std(dataset):
     """Compute the mean and std value of dataset."""
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)

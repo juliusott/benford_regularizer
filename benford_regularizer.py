@@ -48,18 +48,19 @@ def compute_kl(model):
     kl_benford = discrete_kl(b.numpy()[1:])
     return kl_benford
 
-def quantile_loss(model, device, n_quantiles):
+def quantile_loss(model, device):
+    max_weights = int(1e6)
     model_weights = []
     for _, param in model.named_parameters():
         model_weights.append(torch.flatten(param))
     model_weights = torch.cat(model_weights, dim=0)
-    n_quantiles = int(model_weights.shape[0] * n_quantiles)
+    if int(model_weights.shape[0]) > max_weights:
+        idx = torch.randperm(int(model_weights.shape[0]))[:max_weights].to(device)
+        model_weights = model_weights[idx]
+    n_quantiles = int(model_weights.shape[0])
     model_weights = diffmod1(torch.log10(torch.abs(model_weights)), device)
-    # uni = torch.distributions.uniform.Uniform(torch.Tensor([0.0]), torch.Tensor([1.0]))
-    # uni_samples = uni.sample(sample_shape = model_weights.shape).to(device)
     quantile_steps = torch.linspace(start=0,end=1, steps=n_quantiles).to(device)
     model_quantiles = torch.quantile(model_weights, quantile_steps)
-    # uniform_quantiles = torch.quantile(uni_samples, quantile_steps)
     loss = F.mse_loss(model_quantiles, quantile_steps)
     return loss
 

@@ -81,7 +81,7 @@ def main(args):
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
             'dog', 'frog', 'horse', 'ship', 'truck')
 
-    if args.resume:
+    if args.finetune:
         save_dir = f'./experiments/{args.model}_from_checkpoint/'
     else:
         save_dir = f'./experiments/{args.model}/'
@@ -122,31 +122,37 @@ def main(args):
 
 
 
-
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120, 160], gamma=0.1)
     early_stopper = EarlyStopper(patience=args.early_stop_patience)
 
     if args.resume:
-        if not os.path.isfile(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}False.pth'):
+        if os.path.isfile(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}False.pth'):
+            checkpoint = torch.load(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}False.pth')
+        elif os.path.isfile(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}True.pth'):
+            checkpoint = torch.load(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}True.pth')
+        else:
             return
-        checkpoint = torch.load(f'./experiments/{args.model}/checkpoint/ckpt_{args.model}_{args.seed}False.pth')
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
-        model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
+        if isinstance(net, nn.DataParallel):
+            model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
         net.load_state_dict(model_state_dict)
         print("--------------loaded model state_dict---------")
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         best_acc = checkpoint['acc']
+        start_epoch = checkpoint['epoch']
+        if "early_stop_counter" in checkpoint.keys():
+            early_stopper.set_count(checkpoint["early_stop_counter"])
         print("start from accuracy: ", best_acc)
 
 
     # Training
-    def train_bl(epoch, n_quantiles, scale=1):
+    def train_bl(epoch, scale=1):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
         for _ in range(10):
             net.train()
             optimizer2.zero_grad()
-            q_loss = quantile_loss(model=net, device=device, n_quantiles=n_quantiles) * scale
+            q_loss = quantile_loss(model=net, device=device) * scale
             q_loss.backward()
             optimizer2.step()
             bl_kl = compute_kl(net)
@@ -207,7 +213,8 @@ def main(args):
                 'optimizer_state_dict': optimizer.state_dict(),
                 'acc': acc,
                 'loss': test_loss/total,
-                'epoch': epoch
+                'epoch': epoch,
+                'early_stop_counter': early_stopper.get_count()
             }
             if not os.path.isdir(f'{save_dir}checkpoint'):
                 os.mkdir(f'{save_dir}checkpoint')
@@ -221,7 +228,7 @@ def main(args):
 
     if not args.benford:
 
-        for epoch in range(start_epoch, start_epoch+args.epochs):
+        for epoch in range(start_epoch, args.epochs):
             train_loss, train_acc = train(epoch)
             test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
             scheduler.step()
@@ -242,16 +249,17 @@ def main(args):
         test_losssb, test_accsb, bl_kls = [], [], []
         benford_epochs = []
         train_benford = False
-        if args.resume:
+        if args.finetune:
             train_benford = True
 
-        for epoch in range(start_epoch, start_epoch+args.epochs):
+        for epoch in range(start_epoch, args.epochs):
             if train_benford:
-                _ = train_bl(epoch, n_quantiles=100000, scale=args.scale)
+                _ = train_bl(epoch, scale=args.scale)
                 benford_epochs.append(epoch)
             else:
                 train_loss, train_acc = train(epoch)
             test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
+            scheduler.step()
             train_benford = early_stopper.early_stop(test_loss)
             test_losssb.append(test_loss)
             test_accsb.append(test_acc)
@@ -278,6 +286,7 @@ if __name__=="__main__":
     parser.add_argument('--early_stop_patience', default=10, type=int, help='early stopping patience')
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
 
     args = parser.parse_args()

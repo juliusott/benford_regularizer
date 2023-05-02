@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument('--early_stop_patience', default=20, type=int, help='early stopping patience')
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
 
     args = parser.parse_args()
