@@ -58,7 +58,7 @@ def quantile_loss(model, device):
         idx = torch.randperm(int(model_weights.shape[0]))[:max_weights].to(device)
         model_weights = model_weights[idx]
     n_quantiles = int(model_weights.shape[0])
-    model_weights = diffmod1(torch.log10(torch.abs(model_weights)), device)
+    model_weights = diffmod1(torch.log10(torch.abs(model_weights)+1e-6), device)
     quantile_steps = torch.linspace(start=0,end=1, steps=n_quantiles).to(device)
     model_quantiles = torch.quantile(model_weights, quantile_steps)
     loss = F.mse_loss(model_quantiles, quantile_steps)
