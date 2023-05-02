@@ -179,6 +179,7 @@ def main(args):
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                         % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+        scheduler.step()
 
         return train_loss / total , 100*correct/total
 
@@ -231,7 +232,6 @@ def main(args):
         for epoch in range(start_epoch, args.epochs):
             train_loss, train_acc = train(epoch)
             test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
-            scheduler.step()
             test_losss.append(test_loss)
             test_accs.append(test_acc)
             bl_kls.append(bl_kl)
@@ -259,7 +259,6 @@ def main(args):
             else:
                 train_loss, train_acc = train(epoch)
             test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
-            scheduler.step()
             train_benford = early_stopper.early_stop(test_loss)
             test_losssb.append(test_loss)
             test_accsb.append(test_acc)
