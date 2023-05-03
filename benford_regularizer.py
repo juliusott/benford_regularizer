@@ -1,14 +1,9 @@
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
-from copy import deepcopy
-import sys
-import os
 
 benford = np.array([30.1, 17.6, 12.5, 9.7,
                     7.9, 6.7, 5.8, 5.1, 4.6]
