@@ -2,9 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
-import torchvision.transforms as transforms
-from speechcommands import SubsetSC, data_processing
+from speechcommands import SubsetSC
 from benford_regularizer import compute_kl, quantile_loss
 from utils import progress_bar
 import argparse

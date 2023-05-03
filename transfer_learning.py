@@ -189,7 +189,7 @@ def main(args):
         return acc, test_loss/total, best_acc, bl_kl
 
     def test():
-        checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
+        checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}_{args.benford}.pth')
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
         if isinstance(net, nn.DataParallel):

@@ -1,8 +1,6 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torch.optim as optim
-import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
 benford = np.array([30.1, 17.6, 12.5, 9.7,
@@ -10,7 +8,7 @@ benford = np.array([30.1, 17.6, 12.5, 9.7,
                    ) / 100
 
 def discrete_kl(bin_percent):
-    kl = -np.sum(benford * np.log(bin_percent/benford))
+    kl = -np.sum(benford * np.log(bin_percent/benford + 1e-6))
     return kl
 
 
@@ -69,15 +67,15 @@ def diffmod1(x, device):
 
 
 
-def train_mlh(model, device, optimizer, epoch, n_quantiles):
+def train_bl(model, device, optimizer, epoch, n_quantiles):
     model.train()
     optimizer.zero_grad()
     q_loss = quantile_loss(model, device, n_quantiles)
     q_loss.backward()
     optimizer.step()
-    mlh = compute_mlh(model)
-    print('Train Epoch: {} mlh {:.5f} loss {:.5f}'.format(epoch, mlh, q_loss.item()))
-    return mlh
+    bl_kl = compute_kl(model)
+    print('Train Epoch: {} mlh {:.5f} loss {:.5f}'.format(epoch, bl_kl, q_loss.item()))
+    return bl
 
 def test(model, device, test_loader):
     model.eval()
@@ -98,71 +96,5 @@ def test(model, device, test_loader):
         test_accuracy))
 
     return test_loss, test_accuracy
-    
-
-
-if __name__ == "__main__":
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = Net().to(device)
-    best_model = Net().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=1e-3) 
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.8)
-
-    train_loader, test_loader = load_data()
-
-    optimizer2 = optim.Adam(model.parameters(), lr=1e-3)
-    n_epochs = 25
-    best_accuracy = 0
-    early_stopping = 0
-    mlhs = list()
-    val_accuracy = list()
-    test_losss = list()
-    v_lines = []
-    step = 0
-    for epoch in range(1, n_epochs + 1):
-            train_loss = train(model, device, train_loader, optimizer,scheduler, epoch)
-            benf = compute_mlh(model)
-            test_loss, test_accuracy = test(model, device, test_loader)
-            mlhs.append(benf)
-            val_accuracy.append(test_accuracy)
-            test_losss.append(test_loss)
-            step += 1
-            if test_accuracy > best_accuracy:
-                early_stopping = 0
-                best_accuracy = test_accuracy
-                #best_accuracy_state_dict = model.state_dict()
-                #best_model = deepcopy(model)
-                test_loss, test_acc = test(best_model, device, test_loader)
-                print(f"best accuracy so far {test_acc} {best_accuracy} {test_accuracy}")
-            else:
-                early_stopping += 1
-            
-            if early_stopping >= 3:
-                early_stopping = 0
-                v_lines.append(step)
-                v_lines.append(step+5)
-                for i in range(5):
-                    benf = train_mlh(model=model, device=device, optimizer=optimizer2, epoch=epoch, n_quantiles=100000)
-                    test_loss, test_accuracy = test(model=model, device=device, test_loader=test_loader)
-                    mlhs.append(benf)
-                    val_accuracy.append(test_accuracy)
-                    test_losss.append(test_loss)
-                    step += 1
-
-    print(v_lines)
-    print("----DONE WITH TRAINING-----")
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 7))
-    ax1.plot(mlhs)
-    ax1.set_title("MLH")
-    ax2.plot(val_accuracy)
-    ax2.set_title("validation accuracy")
-    ax3.plot(test_losss)
-
-    ax1.vlines(v_lines,min(mlhs),max(mlhs), linestyles="dashed")
-    ax2.vlines(v_lines,min(val_accuracy),max(val_accuracy), linestyles="dashed")
-    ax3.vlines(v_lines,min(test_losss),max(test_losss), linestyles="dashed")
-    ax3.set_title("validation loss")
-    fig.savefig("no_mlh_loss.png")
-
 
 
