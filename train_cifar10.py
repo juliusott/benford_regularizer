@@ -1,9 +1,10 @@
-'''Train CIFAR100 with PyTorch.'''
+'''Train CIFAR10 with PyTorch.'''
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+from torch.utils.data import random_split
 
 import torchvision
 import torchvision.transforms as transforms
@@ -68,10 +69,19 @@ def main(args):
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
     ])
 
-    trainset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=True, transform=transform_train)
+    dataset = torchvision.datasets.CIFAR10(
+        root='./data', train=True, download=False, transform=transform_train)
+    
+    val_size = 10000
+    train_size = len(dataset) - val_size
+    trainset, valset = random_split(dataset, [train_size, val_size])
+
+    
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=128, shuffle=True, num_workers=2, worker_init_fn=seed_worker, generator=g)
+    
+    valloader = torch.utils.data.DataLoader(
+        valset, batch_size=100, shuffle=False, num_workers=2, worker_init_fn=seed_worker, generator=g)
 
     testset = torchvision.datasets.CIFAR10(
         root='./data', train=False, download=True, transform=transform_test)
@@ -184,13 +194,13 @@ def main(args):
         return train_loss / total , 100*correct/total
 
 
-    def test(epoch, best_acc):
+    def eval(epoch, best_acc):
         net.eval()
         test_loss = 0
         correct = 0
         total = 0
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(testloader):
+            for batch_idx, (inputs, targets) in enumerate(valloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
                 loss = criterion(outputs, targets)
@@ -224,29 +234,62 @@ def main(args):
         bl_kl = compute_kl(net)
 
         return acc, test_loss/total, best_acc, bl_kl
+    
+    def test():
+        checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
+        model_state_dict = checkpoint['model_state_dict']
+        model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
+        if isinstance(net, nn.DataParallel):
+            model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
+        net.load_state_dict(model_state_dict)
+        net.eval()
+        test_loss = 0
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for batch_idx, (inputs, targets) in enumerate(testloader):
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = net(inputs)
+                loss = criterion(outputs, targets)
 
-    test_losss, test_accs , bl_kls = [], [], []
+                test_loss += loss.item()
+                _, predicted = outputs.max(1)
+                total += targets.size(0)
+                correct += predicted.eq(targets).sum().item()
+
+                progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+
+        # Save checkpoint.
+        acc = 100.*correct/total
+
+        return acc, test_loss/total
+
+    val_losss, val_accs , bl_kls = [], [], []
 
     if not args.benford:
 
         for epoch in range(start_epoch, args.epochs):
             train_loss, train_acc = train(epoch)
-            test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
-            test_losss.append(test_loss)
-            test_accs.append(test_acc)
+            val_acc, val_loss, best_acc, bl_kl = eval(epoch, best_acc)
+            val_losss.append(val_loss)
+            val_accs.append(val_acc)
             bl_kls.append(bl_kl)
             if epoch % 10 == 0:
-                np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(test_losss))
-                np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(test_accs))
+                np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(val_losss))
+                np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(val_accs))
                 np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
-        np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(test_losss))
-        np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(test_accs))
+        test_acc, test_loss = test()
+        print(f"test acc {test_acc}, test_loss {test_loss}")
+        np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
+        np.save(f"{save_dir}val_loss_{args.model}_{args.seed}.npy", np.asarray(val_losss))
+        np.save(f"{save_dir}val_accs_{args.model}_{args.seed}.npy", np.asarray(val_accs))
         np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
     else:
 
-        test_losssb, test_accsb, bl_kls = [], [], []
+        val_losssb, val_accsb, bl_kls = [], [], []
         benford_epochs = []
         train_benford = False
         if args.finetune:
@@ -258,19 +301,21 @@ def main(args):
                 benford_epochs.append(epoch)
             else:
                 train_loss, train_acc = train(epoch)
-            test_acc, test_loss, best_acc, bl_kl = test(epoch, best_acc)
-            train_benford = early_stopper.early_stop(test_loss)
-            test_losssb.append(test_loss)
-            test_accsb.append(test_acc)
+            val_acc, val_loss, best_acc, bl_kl = eval(epoch, best_acc)
+            train_benford = early_stopper.early_stop(val_loss)
+            val_losssb.append(val_loss)
+            val_accsb.append(val_acc)
             bl_kls.append(bl_kl)
             if epoch % 10 == 0:
-                np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
-                np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
+                np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_losssb))
+                np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_accsb))
                 np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
                 np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
-
-        np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_losssb))
-        np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(test_accsb))
+        test_acc, test_loss = test()
+        print(f"test acc {test_acc}, test_loss {test_loss}")
+        np.save(f"{save_dir}test_loss_acc_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray([test_acc, test_loss]))
+        np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_losssb))
+        np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_accsb))
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
         np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
