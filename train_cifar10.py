@@ -1,4 +1,4 @@
-'''Train CIFAR100 with PyTorch.'''
+'''Train CIFAR10 with PyTorch.'''
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -70,9 +70,9 @@ def main(args):
     ])
 
     dataset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=True, transform=transform_train)
+        root='./data', train=True, download=False, transform=transform_train)
     
-    val_size = 5000
+    val_size = 10000
     train_size = len(dataset) - val_size
     trainset, valset = random_split(dataset, [train_size, val_size])
 
@@ -200,7 +200,7 @@ def main(args):
         correct = 0
         total = 0
         with torch.no_grad():
-            for batch_idx, (inputs, targets) in enumerate(testloader):
+            for batch_idx, (inputs, targets) in enumerate(valloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
                 loss = criterion(outputs, targets)
@@ -281,6 +281,7 @@ def main(args):
                 np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
 
         test_acc, test_loss = test()
+        print(f"test acc {test_acc}, test_loss {test_loss}")
         np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
         np.save(f"{save_dir}val_loss_{args.model}_{args.seed}.npy", np.asarray(val_losss))
         np.save(f"{save_dir}val_accs_{args.model}_{args.seed}.npy", np.asarray(val_accs))
@@ -311,6 +312,7 @@ def main(args):
                 np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
                 np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
         test_acc, test_loss = test()
+        print(f"test acc {test_acc}, test_loss {test_loss}")
         np.save(f"{save_dir}test_loss_acc_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray([test_acc, test_loss]))
         np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_losssb))
         np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_accsb))
