@@ -1,0 +1,15 @@
+name: benford
+
+channels:
+    - pytorch
+    - conda-forge
+
+dependencies:
+    - python=3.10.10
+    - pip
+    - matplotlib
+    - scipy
+    - pytorch
+    - torchvision
+    - torchaudio
+    - cpuonly
