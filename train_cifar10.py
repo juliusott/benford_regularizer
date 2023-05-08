@@ -10,7 +10,7 @@ import torchvision
 import torchvision.transforms as transforms
 from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
 from models.preact_resnet import PreActResNet101, PreActResNet50
-from models.densenet import DenseNet121, DenseNet169
+from models.densenet import DenseNet121, DenseNet169, DenseNet201
 from models.resnext import ResNeXt29_2x64d
 from utils import EarlyStopper
 import os
@@ -109,6 +109,8 @@ def main(args):
         net = DenseNet121()
     elif args.model == 'densenet169':
         net = DenseNet169()
+    elif args.model == 'densenet201':
+        net = DenseNet201()
     elif args.model == "renext":
         net = ResNeXt29_2x64d()
     else:
@@ -322,7 +324,7 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    available_models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', "renext"]
+    available_models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', "renext"]
     parser.add_argument('--model', default='densenet121', help='model to train', choices=available_models)
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
