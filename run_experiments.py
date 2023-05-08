@@ -1,7 +1,7 @@
 from train_cifar10 import main
 import argparse
 
-models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', "renext"]
+models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', 'renext']
 
 seeds = [2051004, 69469, 92983, 9665872, 94213, 96723, 42,
         3665438, 76325, 14896009,  6885, 3407541, 84738, 58775, 82009, 72163,
