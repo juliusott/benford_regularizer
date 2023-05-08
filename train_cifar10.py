@@ -296,7 +296,7 @@ def main(args):
         train_benford = False
         if args.finetune:
             train_benford = True
-            val_acc, val_loss, best_acc, bl_kl = eval(epoch, best_acc, force_store=True)
+            val_acc, val_loss, best_acc, bl_kl = eval(0, best_acc, force_store=True)
 
 
         for epoch in range(start_epoch, args.epochs):
