@@ -196,7 +196,7 @@ def main(args):
         return train_loss / total , 100*correct/total
 
 
-    def eval(epoch, best_acc):
+    def eval(epoch, best_acc, force_store=False):
         net.eval()
         test_loss = 0
         correct = 0
@@ -217,7 +217,7 @@ def main(args):
 
         # Save checkpoint.
         acc = 100.*correct/total
-        if acc > best_acc:
+        if acc > best_acc or force_store:
             print('Saving best accuracy: ', acc)
             net_to_save = net.module if isinstance(net, nn.DataParallel) else net
 
@@ -296,6 +296,8 @@ def main(args):
         train_benford = False
         if args.finetune:
             train_benford = True
+            val_acc, val_loss, best_acc, bl_kl = eval(epoch, best_acc, force_store=True)
+
 
         for epoch in range(start_epoch, args.epochs):
             if train_benford:
