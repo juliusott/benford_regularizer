@@ -4,7 +4,7 @@ from scipy.fftpack import dct
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from speechcommands import SubsetSC, data_processing
+from utils.speechcommands import SubsetSC, data_processing
 import matplotlib as mpl
 
 mpl.style.use("seaborn-deep")

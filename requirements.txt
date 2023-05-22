@@ -8,6 +8,7 @@ fonttools==4.39.3
 idna==3.4
 importlib-resources==5.12.0
 Jinja2==3.1.2
+joblib==1.2.0
 kiwisolver==1.4.4
 lit==16.0.2
 MarkupSafe==2.1.2
@@ -31,10 +32,12 @@ Pillow==9.5.0
 pyparsing==3.0.9
 python-dateutil==2.8.2
 requests==2.29.0
+scikit-learn==1.2.2
 scipy==1.10.1
 six==1.16.0
 sklearn==0.0.post4
 sympy==1.11.1
+threadpoolctl==3.1.0
 torch==2.0.0
 torchaudio==2.0.1
 torchvision==0.15.1

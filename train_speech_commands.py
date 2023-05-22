@@ -2,14 +2,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from speechcommands import SubsetSC
-from benford_regularizer import compute_kl, quantile_loss
-from utils import progress_bar
+from utils.speechcommands import SubsetSC
+from utils.benford_regularizer import compute_kl, quantile_loss
+from utils.utils import progress_bar
 import argparse
 import torchaudio
 import numpy as np
 import os
-from utils import EarlyStopper
+from utils.utils import EarlyStopper
 import random
 labels =['backward','bed','bird', 'cat','dog', 'down', 'eight','five','follow',
 	'forward', 'four', 'go', 'happy', 'house', 'learn', 'left', 'marvin', 'nine',
@@ -190,7 +190,7 @@ def main(args):
 
     def train_bl(epoch, n_quantiles, scale=1):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
-        for i in range(10):
+        for i in range(args.benford_iter):
             net.train()
             optimizer2.zero_grad()
             q_loss = quantile_loss(model=net, device=device, n_quantiles=n_quantiles) * scale
@@ -229,7 +229,7 @@ def main(args):
         if acc > best_acc:
             best_acc = acc
             best_state_dict = net.state_dict()
-            print(f"best accuracy achieved! :)")
+            print("best accuracy achieved! :)")
 
         return acc, test_loss/total, best_acc, sdl_kl, best_state_dict
 
@@ -316,9 +316,7 @@ def main(args):
         np.save(f"{save_dir}benford_epochs_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
 
 if __name__ == "__main__":
-    seeds = [64213, 96010, 20004, 69469, 92983, 96872, 94213, 96723, 42,
-        3638, 76325, 14009,  6885, 3407, 84738, 58775, 82009, 72163,
-        18833, 18632,  5817, 64279, 42826, 61553, 75118]
+    seeds = np.random.randint(0, int(1e6), size=(25,))
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
@@ -327,6 +325,7 @@ if __name__ == "__main__":
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
+    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
 
     args = parser.parse_args()
 

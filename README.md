@@ -1,14 +1,14 @@
 # Benford Regularizer
-Implementation of the Benford Regularizer with quantile regression.
+This is the official implementation of the Benford Regularizer with quantile regression.
 
-Execute Experiments:
+The following sections describe how to execute the code for the individual experiments, presented in the paper.
 
-CIFAR 10 classification from scratch:
 
 The code is tested with
 
 * Python (3.9.16)
 * Python (3.10.4)
+
 ## Code execution from terminal
 
 ### Example command for Cifar10 experiments
@@ -46,6 +46,8 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 
 - ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
 
+- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+
 
 
 
@@ -63,12 +65,58 @@ python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --se
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
+- ```-- epochs(Optional, default:250``` : implemented algorithms are sac, ddpg, td3
+
+- ```-- seed (Optional, default:42)``` : random seed for reproducibility
+
+- ```-- early_stop_patience(Optional, default:10)``` : Patience for Benford optimization
+
+- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+
+- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+
+### Example command for training on Google Speech Commands
+```python
+python train_speech_commands.py --epochs 50 --seed 150195
+
+```
+
+### arguments
+
+- ```-- lr (Optional, default:0.1)``` : inital learning rate
+
+- ```-- epochs(Optional, default:80``` : implemented algorithms are sac, ddpg, td3
+
+- ```-- seed (Optional, default:42)``` : random seed for reproducibility
+
+- ```-- early_stop_patience(Optional, default:10)``` : Patience for Benford optimization
+
+- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+
+- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+
+### Example command for training on the IRIS dataset
+```python
+python train_iris.py --epochs 50 --seed 150195
+
+```
+
+### arguments
+
+- ```-- lr (Optional, default:0.1)``` : inital learning rate
+
 - ```-- epochs(Optional, default:50``` : implemented algorithms are sac, ddpg, td3
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
-- ```-- early_stop_patience(Optional, default:5)``` : Patience for Benford optimization
+- ```-- early_stop_patience(Optional, default:100ß)``` : Patience for Benford optimization
 
 - ```-- benford(Optional, default:False)``` : If Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated ,00 00 
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+
+- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization

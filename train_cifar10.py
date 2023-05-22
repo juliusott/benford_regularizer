@@ -8,20 +8,18 @@ from torch.utils.data import random_split
 
 import torchvision
 import torchvision.transforms as transforms
-from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
 from models.preact_resnet import PreActResNet101, PreActResNet50
 from models.densenet import DenseNet121, DenseNet169, DenseNet201
 from models.resnext import ResNeXt29_2x64d
-from utils import EarlyStopper
+from utils.utils import EarlyStopper
 import os
 import argparse
-from benford_regularizer import quantile_loss, compute_kl
+from utils.benford_regularizer import quantile_loss, compute_kl
 from models.densenet import *
 from models.preact_resnet import *
 from models.resnext import *
-from utils import progress_bar
+from utils.utils import progress_bar
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 
 
@@ -116,6 +114,13 @@ def main(args):
     else:
         raise(NotImplementedError)
 
+    model_weights = []
+    for _, param in net.named_parameters():
+        model_weights.append(torch.flatten(param))
+    model_weights = torch.cat(model_weights, dim=0)
+
+    print(f"number of parameters {int(model_weights.shape[0])}")
+
 
     # Try multiple GPUs
     if torch.cuda.device_count() > 1:
@@ -134,7 +139,7 @@ def main(args):
 
 
 
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120, 160], gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120, 160], gamma=0.2)
     early_stopper = EarlyStopper(patience=args.early_stop_patience)
 
     if args.resume:
@@ -161,7 +166,7 @@ def main(args):
     # Training
     def train_bl(epoch, scale=1):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
-        for _ in range(10):
+        for _ in range(args.benford_iter):
             net.train()
             optimizer2.zero_grad()
             q_loss = quantile_loss(model=net, device=device) * scale
@@ -177,6 +182,7 @@ def main(args):
         train_loss = 0
         correct = 0
         total = 0
+        # Do training
         for batch_idx, (inputs, targets) in enumerate(trainloader):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
@@ -201,6 +207,7 @@ def main(args):
         test_loss = 0
         correct = 0
         total = 0
+        # Do evaluation
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(valloader):
                 inputs, targets = inputs.to(device), targets.to(device)
@@ -238,6 +245,7 @@ def main(args):
         return acc, test_loss/total, best_acc, bl_kl
     
     def test():
+        # Compute the test metric for the model with the best validation score
         checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
@@ -336,6 +344,7 @@ if __name__=="__main__":
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
+    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
 
     args = parser.parse_args()
 

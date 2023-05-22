@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 import torchvision
@@ -14,8 +13,8 @@ import numpy as np
 import random
 import argparse
 import os
-from benford_regularizer import quantile_loss, compute_kl
-from utils import progress_bar, EarlyStopper
+from utils.benford_regularizer import quantile_loss, compute_kl
+from utils.utils import progress_bar, EarlyStopper
         
 
 
@@ -116,7 +115,7 @@ def main(args):
 
     def train_bl(epoch, n_quantiles):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
-        for _ in range(20):
+        for _ in range(args.benfor_iter):
             net.train()
             optimizer2.zero_grad()
             q_loss = quantile_loss(model=net, device=device, n_quantiles=n_quantiles)
@@ -271,9 +270,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     available_models = [f'resnet{n}' for n in [18, 34, 50, 101, 152]]
-    seeds = [64213, 96010, 20004, 69469, 92983, 96872, 94213, 96723, 42,
-            3638, 76325, 14009,  6885, 3407, 84738, 58775, 82009, 72163,
-        18833, 18632,  5817, 64279, 42826, 61553, 75118]
+    seeds = np.random.randint(0, int(1e6), size=(25,))
     parser.add_argument('--model', default='resnet18', help='model to train', choices=available_models)
     parser.add_argument('--lr', default=0.001, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')

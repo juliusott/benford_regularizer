@@ -1,11 +1,10 @@
 from train_cifar10 import main
 import argparse
+import numpy as np
 
 models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', 'renext']
 
-seeds = [2051004, 69469, 92983, 9665872, 94213, 96723, 42,
-        3665438, 76325, 14896009,  6885, 3407541, 84738, 58775, 82009, 72163,
-       1889233, 1863552,  588117, 64215679, 42826, 61553, 75118, 64213, 96010]
+seeds = np.random.randint(0, int(1e6), size=(25,))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -18,6 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
+    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
 
     args = parser.parse_args()
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     for seed in seeds:
         for model in models:
-            args.seed = seed
+            args.seed = int(seed)
             args.model = model
             print(args)
             main(args)

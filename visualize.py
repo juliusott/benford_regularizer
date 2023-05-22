@@ -3,7 +3,7 @@ import matplotlib as mpl
 import numpy as np
 import os
 import sys
-from utils import mean_confidence_interval
+from utils.utils import mean_confidence_interval
 
 mpl.style.use("seaborn-deep")
 font = {'family' : 'normal',

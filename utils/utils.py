@@ -1,4 +1,6 @@
 """Some helper functions for PyTorch, including:
+    - mean_confidence_interval : calculate mean and confidence intervals of results
+    - Early Stopper: Stop training when validation loss did not improve over time
     - get_mean_and_std: calculate the mean and std value of dataset.
     - msr_init: net parameter initialization.
     - progress_bar: progress bar mimic xlua.progress.
@@ -24,6 +26,7 @@ def mean_confidence_interval(data, confidence=0.95):
 
 class EarlyStopper:
     def __init__(self, patience=1, min_delta=0):
+        """Count the number of epochs that a metric has not been improved and stop training."""
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0

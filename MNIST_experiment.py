@@ -2,12 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
 
 import torchvision
 import torchvision.transforms as transforms
-from utils import progress_bar
-from benford_regularizer import compute_kl
+from utils.utils import progress_bar
+from utils.benford_regularizer import compute_kl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -22,7 +21,7 @@ font = {'family' : 'normal',
 mpl.rc('font', **font)
 
 class CNNClassifier(nn.Module):
-    """Custom module for a simple convnet classifier"""
+    """Custom module for a simple convnet classifier."""
     def __init__(self):
         super(CNNClassifier, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -134,7 +133,7 @@ def main():
         acc = 100.*correct/total
         if acc > best_acc:
             best_acc = acc
-            print(f"best accuracy achieved! :)")
+            print("best accuracy achieved! :)")
 
         return acc, test_loss/total, best_acc, sdl_kl, layer_info
 
@@ -174,9 +173,6 @@ def main():
 def visualize():
     files = os.listdir("./experiments/mnist/")
     test_loss_files = [file for file in files if "test_loss" in file]
-    test_acc_files = [file for file in files if "test_acc" in file]
-    sdl_kl_files = [file for file in files if "sdl_kl" in file]
-    layer_var_files = [file for file in files if "layer" in file]
     seeds = [int(file[:-4].replace("test_loss_", "")) for file in test_loss_files]
 
     test_loss = np.concatenate([np.expand_dims(np.load(f"./experiments/mnist/test_loss_{seed}.npy"), axis=1) for seed in seeds], axis=1)
@@ -184,23 +180,16 @@ def visualize():
     test_acc = np.concatenate([np.expand_dims(np.load(f"./experiments/mnist/test_acc_{seed}.npy"),axis=1) for seed in seeds], axis=1)
     test_acc[test_acc<85] = np.nan
     sdl_kl = np.concatenate([np.expand_dims(np.load(f"./experiments/mnist/sdl_kl_{seed}.npy"),axis=1) for seed in seeds],axis=1)
-    layer_var = [np.load(f"./experiments/mnist/layer_mean_{seed}.npy") for seed in seeds if str(seed) in layer_var_files]
 
     fig,(ax1, ax2) = plt.subplots(1,2, sharey=True, figsize=(6,4.5))
     ax1.set_ylim([0,0.08])
     ax1.plot(1- test_acc[:,0]/100, label="MNIST 60000")
     ax1.plot(1- test_acc[:,1]/100, label="MNIST 6000")
     ax1.plot(1- test_acc[:,2]/100, label="MNIST 600")
-    #ax1.plot(1- test_acc[:,3]/100, label="MNIST 600")
-    #ax1.plot(1- test_acc[:,4]/100, label="MNIST 6000")
-    #ax1.plot(1- test_acc[:,5]/100, label="MNIST 60000")
     ax1.set_title("test  error in $\%$")
     ax2.plot(sdl_kl[:,0], label="MNIST 60000")
     ax2.plot(sdl_kl[:,1], label="MNIST 6000")
     ax2.plot(sdl_kl[:,2], label="MNIST 600")
-    #ax2.plot(sdl_kl[:,3], label="MNIST 600")
-    #ax2.plot(sdl_kl[:,4], label="MNIST 6000")
-    #ax2.plot(sdl_kl[:,5], label="MNIST 60000")
     ax2.legend()
     ax2.set_title("KL between BL/CNN")
     ax1.set_xlabel("epochs")
@@ -210,5 +199,5 @@ def visualize():
 
 
 if __name__ == "__main__":
-    #main()
+    main()
     visualize()
