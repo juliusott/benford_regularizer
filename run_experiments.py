@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
+    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iterations')
 
     args = parser.parse_args()
 

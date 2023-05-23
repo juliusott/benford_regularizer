@@ -7,15 +7,16 @@ from typing import Optional, Tuple, Union
 
 from torch import Tensor
 import torch
-import os  
+import os
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import torchaudio
 
+
 def _load_waveform(
-    root: str,
-    filename: str,
-    exp_sample_rate: int,
+        root: str,
+        filename: str,
+        exp_sample_rate: int,
 ):
     path = os.path.join(root, filename)
     waveform, sample_rate = torchaudio.load(path)
@@ -23,14 +24,17 @@ def _load_waveform(
         raise ValueError(f"sample rate should be {exp_sample_rate}, but got {sample_rate}")
     return waveform
 
+
 FOLDER_IN_ARCHIVE = "SpeechCommands"
 URL = "speech_commands_v0.02"
 HASH_DIVIDER = "_nohash_"
 EXCEPT_FOLDER = "_background_noise_"
 SAMPLE_RATE = 16000
 _CHECKSUMS = {
-    "http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz": "743935421bb51cccdb6bdd152e04c5c70274e935c82119ad7faeec31780d811d",  # noqa: E501
-    "http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz": "af14739ee7dc311471de98f5f9d2c9191b18aedfe957f4a6ff791c709868ff58",  # noqa: E501
+    "http://download.tensorflow.org/data/speech_commands_v0.01.tar.gz": "743935421bb51cccdb6bdd152e04c5c70274e935c82119ad7faeec31780d811d",
+    # noqa: E501
+    "http://download.tensorflow.org/data/speech_commands_v0.02.tar.gz": "af14739ee7dc311471de98f5f9d2c9191b18aedfe957f4a6ff791c709868ff58",
+    # noqa: E501
 }
 
 
@@ -85,12 +89,12 @@ class SPEECHCOMMANDS(Dataset):
     """
 
     def __init__(
-        self,
-        root: Union[str, Path],
-        url: str = URL,
-        folder_in_archive: str = FOLDER_IN_ARCHIVE,
-        download: bool = False,
-        subset: Optional[str] = None,
+            self,
+            root: Union[str, Path],
+            url: str = URL,
+            folder_in_archive: str = FOLDER_IN_ARCHIVE,
+            download: bool = False,
+            subset: Optional[str] = None,
     ) -> None:
 
         if subset is not None and subset not in ["training", "validation", "testing"]:
@@ -183,20 +187,21 @@ class SPEECHCOMMANDS(Dataset):
 
     def __len__(self) -> int:
         return len(self._walker)
-    
+
 
 class SubsetSC(SPEECHCOMMANDS):
-    
-    def __init__(self, data_path,subset: str = None,url="speech_commands_v0.02"):
-        super().__init__(root=data_path,url=url,download=True)
+
+    def __init__(self, data_path, subset: str = None, url="speech_commands_v0.02"):
+        super().__init__(root=data_path, url=url, download=True)
         self.data_path = data_path
         self.folder_in_archive = "SpeechCommands"
         self.HASH_DIVIDER = "_nohash_"
         self.EXCEPT_FOLDER = "_background_noise_"
 
         folder_in_archive = os.path.join(self.folder_in_archive, url)
-        self.path = os.path.join(data_path,folder_in_archive)
-        print('self.path',self.path)
+        self.path = os.path.join(data_path, folder_in_archive)
+        print('self.path', self.path)
+
         def _load_list(root, *filenames):
             output = []
             for filename in filenames:
@@ -216,31 +221,35 @@ class SubsetSC(SPEECHCOMMANDS):
             self._walker = [
                 w for w in walker
                 if self.HASH_DIVIDER in w
-                and self.EXCEPT_FOLDER not in w
-                and os.path.normpath(w) not in excludes
+                   and self.EXCEPT_FOLDER not in w
+                   and os.path.normpath(w) not in excludes
             ]
+
 
 def path_index(dataset):
     path_to_index = {}
     index_to_path = {}
     index = 0
     for waveform, sample_rate, label, speaker_id, utterance_number in dataset:
-        path = os.path.join(label,speaker_id +'_nohash_' + str(utterance_number) +'.wav' )
+        path = os.path.join(label, speaker_id + '_nohash_' + str(utterance_number) + '.wav')
         path_to_index[path] = index
         index_to_path[index] = path
-        index+=1
-    return path_to_index,index_to_path
+        index += 1
+    return path_to_index, index_to_path
+
 
 # from https://pytorch.org/tutorials/intermediate/speech_command_recognition_with_torchaudio.html
-def label_to_index(word,labels):
+def label_to_index(word, labels):
     # Return the position of the word in labels
     return torch.tensor(labels.index(word))
 
+
 # from https://pytorch.org/tutorials/intermediate/speech_command_recognition_with_torchaudio.html
-def index_to_label(index,labels):
+def index_to_label(index, labels):
     # Return the word corresponding to the index in labels
     # This is the inverse of label_to_index
     return labels[index]
+
 
 # From Nvidia Nemo
 def get_same_padding(kernel_size, stride, dilation):
@@ -250,20 +259,22 @@ def get_same_padding(kernel_size, stride, dilation):
         return (dilation * kernel_size) // 2 - 1
     return kernel_size // 2
 
-def data_processing(data,data_type,labels,stft_transform,args,path_to_index=None):
+
+def data_processing(data, data_type, labels, stft_transform, args, path_to_index=None):
     spectrograms = []
     targets = []
     indexes = []
 
-    for (waveform, sample_rate, target_text, speaker_id, utterance_number) in data: # waveform, sample_rate, label, speaker_id, utterance_number
+    for (waveform, sample_rate, target_text, speaker_id,
+         utterance_number) in data:  # waveform, sample_rate, label, speaker_id, utterance_number
         if data_type == 'train':
             spec = stft_transform(waveform).squeeze(0).transpose(0, 1).contiguous()
         else:
             spec = stft_transform(waveform).squeeze(0).transpose(0, 1).contiguous()
-            path = os.path.join(target_text,speaker_id +'_nohash_' + str(utterance_number) +'.wav')
+            path = os.path.join(target_text, speaker_id + '_nohash_' + str(utterance_number) + '.wav')
             indexes += [torch.tensor(path_to_index[path])]
         spectrograms.append(spec)
-        targets += [label_to_index(target_text,labels)]
+        targets += [label_to_index(target_text, labels)]
 
     targets = torch.stack(targets)
     spectrograms = nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).unsqueeze(1).transpose(2, 3).contiguous()
@@ -271,7 +282,8 @@ def data_processing(data,data_type,labels,stft_transform,args,path_to_index=None
         return torch.abs(spectrograms), targets
     else:
         indexes = torch.stack(indexes)
-        return torch.abs(spectrograms), targets,indexes
+        return torch.abs(spectrograms), targets, indexes
+
 
 def make_relativepath_index(file_paths):
     path_to_index = {}
@@ -283,35 +295,9 @@ def make_relativepath_index(file_paths):
             path = path.strip()
             path_to_index[path] = index
             index_to_path[index] = path
-            index+=1
-    return path_to_index,index_to_path
+            index += 1
+    return path_to_index, index_to_path
 
-def musan_loader(file_paths,musan_path,speech_command_path,batch_size,path_to_index,audio_transforms):
-    spectrograms = []
-    targets = []  
-    indexes = []
-    with open(file_paths) as f:
-        lines = f.readlines()
-        for mixture_path in lines:
-            mixture,sample_rate = torchaudio.load(os.path.join(musan_path,mixture_path).strip())
-            target = mixture_path.split('/')[0]
-            targets += [label_to_index(target,labels)]
-            spec = audio_transforms(mixture).squeeze(0).transpose(0, 1).contiguous()
-            spectrograms.append(spec)
-            indexes += [torch.tensor(path_to_index[mixture_path])]
-    spectrograms = nn.utils.rnn.pad_sequence(spectrograms, batch_first=True).unsqueeze(1).transpose(2, 3).contiguous()
-    targets = torch.stack(targets)
-    indexes = torch.stack(indexes)
-    musan_dataset = TensorDataset(spectrograms,targets,indexes) # create your datset
-    musan_dataloader = DataLoader(musan_dataset, batch_size=batch_size) 
-    return musan_dataloader
-
-def load_config(config_path,config_name):
-    config = configparser.ConfigParser()
-    config._interpolation = configparser.ExtendedInterpolation()
-    config.read(config_path)
-    config = config._sections[config_name]
-    return config
 
 class step_counter(object):
     def __init__(self):
@@ -321,11 +307,12 @@ class step_counter(object):
         self.count += 1
 
     def get(self):
-        return self.count 
-    
+        return self.count
+
+
 if __name__ == "__main__":
     data_path = "./data"
-    train_set = SubsetSC(data_path,"training")
-    dev_set = SubsetSC(data_path,"validation")
-    test_set = SubsetSC(data_path,"testing")
+    train_set = SubsetSC(data_path, "training")
+    dev_set = SubsetSC(data_path, "validation")
+    test_set = SubsetSC(data_path, "testing")
     print(len(train_set), len(dev_set), len(test_set))

@@ -11,13 +11,15 @@ import numpy as np
 import os
 from utils.utils import EarlyStopper
 import random
-labels =['backward','bed','bird', 'cat','dog', 'down', 'eight','five','follow',
-	'forward', 'four', 'go', 'happy', 'house', 'learn', 'left', 'marvin', 'nine',
-	'no', 'off', 'on', 'one', 'right', 'seven', 'sheila', 'six', 'stop', 'three',
-	'tree', 'two', 'up', 'visual', 'wow', 'yes', 'zero']
+
+labels = ['backward', 'bed', 'bird', 'cat', 'dog', 'down', 'eight', 'five', 'follow',
+          'forward', 'four', 'go', 'happy', 'house', 'learn', 'left', 'marvin', 'nine',
+          'no', 'off', 'on', 'one', 'right', 'seven', 'sheila', 'six', 'stop', 'three',
+          'tree', 'two', 'up', 'visual', 'wow', 'yes', 'zero']
+
 
 def label_to_index(word):
-# Return the position of the word in labels
+    # Return the position of the word in labels
     return torch.tensor(labels.index(word))
 
 
@@ -25,6 +27,7 @@ def index_to_label(index):
     # Return the word corresponding to the index in labels
     # This is the inverse of label_to_index
     return labels[index]
+
 
 def number_of_correct(pred, target):
     # count number of correct predictions
@@ -34,6 +37,7 @@ def number_of_correct(pred, target):
 def get_likely_index(tensor):
     # find most likely label index for each element in the batch
     return tensor.argmax(dim=-1)
+
 
 class M5(nn.Module):
     def __init__(self, n_input=1, n_output=35, stride=16, n_channel=32):
@@ -71,7 +75,6 @@ class M5(nn.Module):
         return F.log_softmax(x, dim=2)
 
 
-
 def pad_sequence(batch):
     # Make all tensor in a batch the same length by padding with zeros
     batch = [item.t() for item in batch]
@@ -80,7 +83,6 @@ def pad_sequence(batch):
 
 
 def collate_fn(batch):
-
     # A data tuple has the form:
     # waveform, sample_rate, label, speaker_id, utterance_number
 
@@ -97,6 +99,7 @@ def collate_fn(batch):
 
     return tensors, targets
 
+
 def set_seed(seed: int = 42) -> None:
     np.random.seed(seed)
     random.seed(seed)
@@ -110,13 +113,12 @@ def set_seed(seed: int = 42) -> None:
     print(f"Random seed set as {seed}")
 
 
-
 def main(args):
     print(args)
-    set_seed(args.seed)    
-    train_dataset = SubsetSC("./data","training")
-    val_dataset = SubsetSC("./data","validation")
-    test_dataset = SubsetSC("./data","testing")
+    set_seed(args.seed)
+    train_dataset = SubsetSC("./data", "training")
+    val_dataset = SubsetSC("./data", "validation")
+    test_dataset = SubsetSC("./data", "testing")
     # print(train_dataset.shape, test_dataset.shape)
 
     batch_size = 256
@@ -134,25 +136,25 @@ def main(args):
     transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=new_sample_rate)
     transformed = transform(waveform)
 
-    trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, 
-    shuffle=True, collate_fn=collate_fn, num_workers=num_workers,
-    pin_memory=pin_memory,
-    )
-    testloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, collate_fn=collate_fn,
-                                                num_workers=num_workers, pin_memory=pin_memory,
-    )
+    trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
+                                              shuffle=True, collate_fn=collate_fn, num_workers=num_workers,
+                                              pin_memory=pin_memory,
+                                              )
+    testloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False,
+                                             collate_fn=collate_fn,
+                                             num_workers=num_workers, pin_memory=pin_memory,
+                                             )
 
-    valloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, drop_last=False, collate_fn=collate_fn,
-                                                num_workers=num_workers, pin_memory=pin_memory,
-    )
-
-
+    valloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, drop_last=False,
+                                            collate_fn=collate_fn,
+                                            num_workers=num_workers, pin_memory=pin_memory,
+                                            )
 
     net = M5(n_input=transformed.shape[0], n_output=len(labels))
     net.to(device)
     transform = transform.to(device)
     optimizer = optim.Adam(net.parameters(), lr=0.01, weight_decay=0.0001)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1) 
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
     early_stopper = EarlyStopper(patience=args.early_stop_patience)
 
     best_acc = 0
@@ -183,10 +185,9 @@ def main(args):
             correct += number_of_correct(pred, targets)
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                         % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
-        return train_loss / total , 100*correct/total
-
+        return train_loss / total, 100 * correct / total
 
     def train_bl(epoch, n_quantiles, scale=1):
         optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
@@ -198,7 +199,7 @@ def main(args):
             optimizer2.step()
             bl_kl = compute_kl(net)
             progress_bar(i, 10, 'Loss: %.3f '
-                            % bl_kl)
+                         % bl_kl)
         return bl_kl
 
     def eval(best_acc, best_state_dict):
@@ -220,18 +221,17 @@ def main(args):
                 correct += number_of_correct(pred, targets)
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-
+                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
         sdl_kl = compute_kl(net)
         # Save checkpoint.
-        acc = 100.*correct/total
+        acc = 100. * correct / total
         if acc > best_acc:
             best_acc = acc
             best_state_dict = net.state_dict()
             print("best accuracy achieved! :)")
 
-        return acc, test_loss/total, best_acc, sdl_kl, best_state_dict
+        return acc, test_loss / total, best_acc, sdl_kl, best_state_dict
 
     def test(best_state_dict):
         net.load_state_dict(best_state_dict)
@@ -253,20 +253,19 @@ def main(args):
                 correct += number_of_correct(pred, targets)
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
         # Save checkpoint.
-        acc = 100.*correct/total
-        return acc, test_loss/total
+        acc = 100. * correct / total
+        return acc, test_loss / total
 
     val_losss, val_accs, bl_kls = [], [], []
-
 
     if not args.benford:
 
         for epoch in range(0, args.epochs):
             train_loss, train_acc = train(epoch)
-            val_acc, val_loss, best_acc, bl_kl, best_state_dict = eval(best_acc,best_state_dict)
+            val_acc, val_loss, best_acc, bl_kl, best_state_dict = eval(best_acc, best_state_dict)
             scheduler.step()
             val_losss.append(val_loss)
             val_accs.append(val_acc)
@@ -297,7 +296,7 @@ def main(args):
                 benford_epochs.append(epoch)
             else:
                 train_loss, train_acc = train(epoch)
-            val_acc, val_loss, best_acc, bl_kl, best_state_dict = eval(best_acc,best_state_dict)
+            val_acc, val_loss, best_acc, bl_kl, best_state_dict = eval(best_acc, best_state_dict)
             scheduler.step()
             train_benford = early_stopper.early_stop(val_loss)
             val_losss.append(val_loss)
@@ -315,6 +314,7 @@ def main(args):
         np.save(f"{save_dir}benford_kl_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
         np.save(f"{save_dir}benford_epochs_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
 
+
 if __name__ == "__main__":
     seeds = np.random.randint(0, int(1e6), size=(25,))
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -325,7 +325,7 @@ if __name__ == "__main__":
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
+    parser.add_argument('--benford_iter', default=10, type=int, help='number of benford iterations')
 
     args = parser.parse_args()
 

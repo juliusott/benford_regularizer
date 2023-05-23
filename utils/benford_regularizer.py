@@ -12,27 +12,28 @@ import torch
 import torch.nn.functional as F
 from scipy.stats import pearsonr
 
-
-
 benford = np.array([30.1, 17.6, 12.5, 9.7,
                     7.9, 6.7, 5.8, 5.1, 4.6]
                    ) / 100
 
+
 def discrete_kl(bin_percent):
-    kl = -np.sum(benford * np.log(bin_percent/benford + 1e-6))
+    kl = -np.sum(benford * np.log(bin_percent / benford + 1e-6))
     return kl
 
 
 def mlh(bin_percent):
     return pearsonr(benford, bin_percent[1:])[0]
 
+
 def bincount(tensor):
     counts = torch.zeros(10)
     for i in range(10):
         counts[i] = torch.count_nonzero(
-        tensor == i
-        )   
+            tensor == i
+        )
     return counts
+
 
 @torch.no_grad()
 def bin_percent(tensor):
@@ -41,6 +42,7 @@ def bin_percent(tensor):
     tensor = tensor // 10 ** long_tensor
     tensor = bincount(tensor.long())
     return tensor / tensor.sum()
+
 
 @torch.no_grad()
 def compute_kl(model):
@@ -52,6 +54,7 @@ def compute_kl(model):
     kl_benford = discrete_kl(b.numpy()[1:])
     return kl_benford
 
+
 def quantile_loss(model, device):
     max_weights = int(1e6)
     model_weights = []
@@ -62,11 +65,12 @@ def quantile_loss(model, device):
         idx = torch.randperm(int(model_weights.shape[0]))[:max_weights].to(device)
         model_weights = model_weights[idx]
     n_quantiles = int(model_weights.shape[0])
-    model_weights = diffmod1(torch.log10(torch.abs(model_weights)+1e-6), device)
-    quantile_steps = torch.linspace(start=0,end=1, steps=n_quantiles).to(device)
+    model_weights = diffmod1(torch.log10(torch.abs(model_weights) + 1e-6), device)
+    quantile_steps = torch.linspace(start=0, end=1, steps=n_quantiles).to(device)
     model_quantiles = torch.quantile(model_weights, quantile_steps)
     loss = F.mse_loss(model_quantiles, quantile_steps)
     return loss
+
 
 def diffmod1(x, device):
     pi = torch.Tensor([np.pi]).to(device)
@@ -74,6 +78,3 @@ def diffmod1(x, device):
     y = torch.atan(-1.0 / (torch.tan(x))) + 0.5 * pi
     y = 1 / pi * y
     return y
-
-
-

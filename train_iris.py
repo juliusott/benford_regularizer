@@ -13,19 +13,17 @@ from utils.benford_regularizer import compute_kl, quantile_loss
 from utils.utils import EarlyStopper
 from utils.utils import mean_confidence_interval
 
-
 mpl.style.use("seaborn-deep")
-font = {'family' : 'normal',
-        'weight' : 'normal',
-        'size'   : 12}
+font = {'family': 'normal',
+        'weight': 'normal',
+        'size': 12}
 
 mpl.rc('font', **font)
 
 
-
 def main(args, seed=42):
     torch.manual_seed(seed)
-    X,y = load_iris(return_X_y=True)
+    X, y = load_iris(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=seed)
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.3, random_state=seed)
     X_train_t = torch.from_numpy(X_train).to(torch.float32)
@@ -45,10 +43,10 @@ def main(args, seed=42):
 
     device = "cpu"
     net = nn.Sequential(
-            nn.Linear(4, 10),
-            nn.ReLU(),
-            nn.Linear(10, 3)
-            )
+        nn.Linear(4, 10),
+        nn.ReLU(),
+        nn.Linear(10, 3)
+    )
 
     net.to(device)
     best_state_dict = net.state_dict()
@@ -82,7 +80,7 @@ def main(args, seed=42):
             _, predicted = outputs.max(1)
             total += y_batch.size(0)
             correct += predicted.eq(y_batch).sum().item()
-        return correct/total, train_loss/total
+        return correct / total, train_loss / total
 
     @torch.no_grad()
     def test():
@@ -98,7 +96,7 @@ def main(args, seed=42):
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-        return correct/total, test_loss/total
+        return correct / total, test_loss / total
 
     @torch.no_grad()
     def eval():
@@ -113,9 +111,9 @@ def main(args, seed=42):
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-        
+
         bl_kl = compute_kl(net)
-        return correct/total, test_loss/total, bl_kl
+        return correct / total, test_loss / total, bl_kl
 
     best_acc = 110
     best_epoch = 0
@@ -123,9 +121,9 @@ def main(args, seed=42):
     bl_kls, val_accs, bl_epochs = [], [], []
     for epoch in range(0, args.epochs):
         if train_benford:
-                _ = train_bl(epoch=epoch, scale=1)
-                bl_epochs.append(epoch)
-                print(f"benford {epoch}")
+            _ = train_bl(epoch=epoch, scale=1)
+            bl_epochs.append(epoch)
+            print(f"benford {epoch}")
         else:
             train_acc, train_loss = train()
         val_acc, val_loss, bl_kl = eval()
@@ -139,11 +137,10 @@ def main(args, seed=42):
             best_epoch = epoch
 
     net.load_state_dict(best_state_dict)
-    test_acc , test_loss = test()
+    test_acc, test_loss = test()
     print(f" best acc {best_acc} test acc {test_acc} in epoch {best_epoch}")
 
     return test_acc, np.asarray(val_accs), np.asarray(bl_kls), bl_epochs
-
 
 
 if __name__ == "__main__":
@@ -156,10 +153,9 @@ if __name__ == "__main__":
     parser.add_argument('--early_stop_patience', default=5, type=int, help='early stopping patience')
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
+    parser.add_argument('--benford_iter', default=10, type=int, help='number of benford iterations')
 
     args = parser.parse_args()
-
 
     if args.seed is None:
         args.seed = np.random.randint(0, int(1e6), size=(25,))
@@ -167,21 +163,22 @@ if __name__ == "__main__":
     test_accs = []
     for seed in args.seed:
         print(seed)
-        test_acc, val_accs_bl, bl_kls_bl, benford_epochs  = main(args, seed=seed)
+        test_acc, val_accs_bl, bl_kls_bl, benford_epochs = main(args, seed=seed)
         test_accs.append(test_acc)
-        
 
     mean, conf = mean_confidence_interval(test_accs)
-    print(f"BENFORD: mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
+    print(
+        f"BENFORD: mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
     test_accs = []
     for seed in args.seeds:
-        test_acc, val_accs, bl_kls, _= main(benford=False, seed=seed)
+        test_acc, val_accs, bl_kls, _ = main(benford=False, seed=seed)
         test_accs.append(test_acc)
 
     mean, conf = mean_confidence_interval(test_accs)
-    print(f" mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
+    print(
+        f" mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
 
-    fig, (ax,ax1)  = plt.subplots(2,1, figsize=(6,4.5), sharex=True)
+    fig, (ax, ax1) = plt.subplots(2, 1, figsize=(6, 4.5), sharex=True)
     ax.set_title("validation error")
     ax.plot(val_accs_bl, label="MLP + BL reg")
     ax.plot(val_accs, label="MLP")
@@ -189,7 +186,7 @@ if __name__ == "__main__":
     ax1.plot(bl_kls_bl)
     ax1.plot(bl_kls)
     ax.set_yscale("log")
-    ax.set_ylim([0, 10**-2])
+    ax.set_ylim([0, 10 ** -2])
     ax1.set_yscale("log")
     ax.legend()
     ax1.legend()

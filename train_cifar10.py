@@ -23,7 +23,6 @@ import numpy as np
 import random
 
 
-
 def set_seed(seed: int = 42) -> None:
     np.random.seed(seed)
     random.seed(seed)
@@ -38,22 +37,20 @@ def set_seed(seed: int = 42) -> None:
 
 
 def main(args):
-    
-    device =  'cuda' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
     best_acc = 0  # best test accuracy
     # Data
     print('==> Preparing data..')
 
     def seed_worker(worker_id):
-        worker_seed = torch.initial_seed() % 2**32
+        worker_seed = torch.initial_seed() % 2 ** 32
         np.random.seed(worker_seed)
         random.seed(worker_seed)
 
     g = torch.Generator()
     g.manual_seed(args.seed)
     set_seed(args.seed)
-
 
     transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
@@ -69,15 +66,14 @@ def main(args):
 
     dataset = torchvision.datasets.CIFAR10(
         root='./data', train=True, download=False, transform=transform_train)
-    
+
     val_size = 10000
     train_size = len(dataset) - val_size
     trainset, valset = random_split(dataset, [train_size, val_size])
 
-    
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=128, shuffle=True, num_workers=2, worker_init_fn=seed_worker, generator=g)
-    
+
     valloader = torch.utils.data.DataLoader(
         valset, batch_size=100, shuffle=False, num_workers=2, worker_init_fn=seed_worker, generator=g)
 
@@ -87,7 +83,7 @@ def main(args):
         testset, batch_size=100, shuffle=False, num_workers=2, worker_init_fn=seed_worker, generator=g)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
-            'dog', 'frog', 'horse', 'ship', 'truck')
+               'dog', 'frog', 'horse', 'ship', 'truck')
 
     if args.finetune:
         save_dir = f'./experiments/{args.model}_from_checkpoint/'
@@ -112,7 +108,7 @@ def main(args):
     elif args.model == "renext":
         net = ResNeXt29_2x64d()
     else:
-        raise(NotImplementedError)
+        raise NotImplementedError
 
     model_weights = []
     for _, param in net.named_parameters():
@@ -120,7 +116,6 @@ def main(args):
     model_weights = torch.cat(model_weights, dim=0)
 
     print(f"number of parameters {int(model_weights.shape[0])}")
-
 
     # Try multiple GPUs
     if torch.cuda.device_count() > 1:
@@ -135,11 +130,9 @@ def main(args):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
-                        momentum=0.9, weight_decay=5e-4)
+                          momentum=0.9, weight_decay=5e-4)
 
-
-
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120, 160], gamma=0.2)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
     early_stopper = EarlyStopper(patience=args.early_stop_patience)
 
     if args.resume:
@@ -152,7 +145,7 @@ def main(args):
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
         if isinstance(net, nn.DataParallel):
-            model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
+            model_state_dict = {"module." + key: value for key, value in model_state_dict.items()}
         net.load_state_dict(model_state_dict)
         print("--------------loaded model state_dict---------")
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -161,7 +154,6 @@ def main(args):
         if "early_stop_counter" in checkpoint.keys():
             early_stopper.set_count(checkpoint["early_stop_counter"])
         print("start from accuracy: ", best_acc)
-
 
     # Training
     def train_bl(epoch, scale=1):
@@ -196,11 +188,10 @@ def main(args):
             correct += predicted.eq(targets).sum().item()
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                         % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
         scheduler.step()
 
-        return train_loss / total , 100*correct/total
-
+        return train_loss / total, 100 * correct / total
 
     def eval(epoch, best_acc, force_store=False):
         net.eval()
@@ -220,10 +211,10 @@ def main(args):
                 correct += predicted.eq(targets).sum().item()
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
         # Save checkpoint.
-        acc = 100.*correct/total
+        acc = 100. * correct / total
         if acc > best_acc or force_store:
             print('Saving best accuracy: ', acc)
             net_to_save = net.module if isinstance(net, nn.DataParallel) else net
@@ -232,7 +223,7 @@ def main(args):
                 'model_state_dict': net_to_save.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'acc': acc,
-                'loss': test_loss/total,
+                'loss': test_loss / total,
                 'epoch': epoch,
                 'early_stop_counter': early_stopper.get_count()
             }
@@ -242,15 +233,15 @@ def main(args):
             best_acc = acc
         bl_kl = compute_kl(net)
 
-        return acc, test_loss/total, best_acc, bl_kl
-    
+        return acc, test_loss / total, best_acc, bl_kl
+
     def test():
         # Compute the test metric for the model with the best validation score
         checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
         if isinstance(net, nn.DataParallel):
-            model_state_dict = {"module."+key: value for key, value in model_state_dict.items()}
+            model_state_dict = {"module." + key: value for key, value in model_state_dict.items()}
         net.load_state_dict(model_state_dict)
         net.eval()
         test_loss = 0
@@ -268,14 +259,14 @@ def main(args):
                 correct += predicted.eq(targets).sum().item()
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
         # Save checkpoint.
-        acc = 100.*correct/total
+        acc = 100. * correct / total
 
-        return acc, test_loss/total
+        return acc, test_loss / total
 
-    val_losss, val_accs , bl_kls = [], [], []
+    val_losss, val_accs, bl_kls = [], [], []
 
     if not args.benford:
 
@@ -288,14 +279,16 @@ def main(args):
             if epoch % 10 == 0:
                 np.save(f"{save_dir}test_loss_{args.model}_{args.seed}.npy", np.asarray(val_losss))
                 np.save(f"{save_dir}test_accs_{args.model}_{args.seed}.npy", np.asarray(val_accs))
-                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
+                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy",
+                        np.asarray(bl_kls))
 
         test_acc, test_loss = test()
         print(f"test acc {test_acc}, test_loss {test_loss}")
         np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
         np.save(f"{save_dir}val_loss_{args.model}_{args.seed}.npy", np.asarray(val_losss))
         np.save(f"{save_dir}val_accs_{args.model}_{args.seed}.npy", np.asarray(val_accs))
-        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
+        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy",
+                np.asarray(bl_kls))
 
     else:
 
@@ -305,7 +298,6 @@ def main(args):
         if args.finetune:
             train_benford = True
             val_acc, val_loss, best_acc, bl_kl = eval(0, best_acc, force_store=True)
-
 
         for epoch in range(start_epoch, args.epochs):
             if train_benford:
@@ -319,32 +311,38 @@ def main(args):
             val_accsb.append(val_acc)
             bl_kls.append(bl_kl)
             if epoch % 10 == 0:
-                np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_losssb))
-                np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_accsb))
-                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
-                np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
+                np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy",
+                        np.asarray(val_losssb))
+                np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy",
+                        np.asarray(val_accsb))
+                np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy",
+                        np.asarray(bl_kls))
+                np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy",
+                        np.asarray(benford_epochs))
         test_acc, test_loss = test()
         print(f"test acc {test_acc}, test_loss {test_loss}")
-        np.save(f"{save_dir}test_loss_acc_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray([test_acc, test_loss]))
+        np.save(f"{save_dir}test_loss_acc_benford{args.model}_{args.seed}_scale{args.scale}.npy",
+                np.asarray([test_acc, test_loss]))
         np.save(f"{save_dir}test_loss_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_losssb))
         np.save(f"{save_dir}test_accs_benford{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(val_accsb))
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
-        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(bl_kls))
+        np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy",
+                np.asarray(bl_kls))
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     available_models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', "renext"]
     parser.add_argument('--model', default='densenet121', help='model to train', choices=available_models)
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
-    parser.add_argument('--seed', default=0, type=int, help='random seed', choices=np.arange(0,25).tolist())
+    parser.add_argument('--seed', default=0, type=int, help='random seed', choices=np.arange(0, 25).tolist())
     parser.add_argument('--early_stop_patience', default=10, type=int, help='early stopping patience')
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter' , default=10, type=int, help='number of benford iteratons')
+    parser.add_argument('--benford_iter', default=10, type=int, help='number of benford iterations')
 
     args = parser.parse_args()
 
