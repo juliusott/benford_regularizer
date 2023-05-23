@@ -112,6 +112,10 @@ dmypy.json
 #numpy files
 *.npy
 
+#images or pdf files
+*.png
+*.pdf
+
 #torch checkpoints
 *.pt
 
