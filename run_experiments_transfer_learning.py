@@ -1,6 +1,8 @@
-from transfer_learning import main
 import argparse
+
 import numpy as np
+
+from transfer_learning import main
 from utils.utils import check_positive
 
 seeds = np.random.randint(0, int(1e6), size=(25,))

@@ -5,16 +5,17 @@
     - msr_init: net parameter initialization.
     - progress_bar: progress bar mimic xlua.progress.
 """
+import argparse
 import os
 import sys
 import time
+
 import numpy as np
 import scipy.stats as stats
-import argparse
-
-import torch.nn as nn
 import torch
+import torch.nn as nn
 import torch.nn.init as init
+
 
 def check_positive(value):
     ivalue = int(value)
