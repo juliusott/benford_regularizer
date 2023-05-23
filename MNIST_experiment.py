@@ -183,7 +183,7 @@ def visualize():
     sdl_kl = np.concatenate(
         [np.expand_dims(np.load(f"./experiments/mnist/sdl_kl_{seed}.npy"), axis=1) for seed in seeds], axis=1)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(6, 4.5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, sharey="all", figsize=(6, 4.5))
     ax1.set_ylim([0, 0.08])
     ax1.plot(1 - test_acc[:, 0] / 100, label="MNIST 60000")
     ax1.plot(1 - test_acc[:, 1] / 100, label="MNIST 6000")
