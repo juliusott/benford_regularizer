@@ -146,10 +146,11 @@ def main(args, seed=42):
 if __name__ == "__main__":
     import argparse
     from utils.utils import check_positive
+
     parser = argparse.ArgumentParser(description='PyTorch IRIS')
     parser.add_argument('--lr', default=0.05, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=1000, type=int, help='number of training epochs')
-    parser.add_argument('--seed', nargs='*', type=int, choices=np.arange(0,int(1e6)).tolist())
+    parser.add_argument('--seed', nargs='*', type=int, choices=np.arange(0, int(1e6)).tolist())
     parser.add_argument('--early_stop_patience', default=5, type=int, help='early stopping patience')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
     parser.add_argument('--benford_iter', default=10, type=check_positive, help='number of benford iterations')
@@ -168,7 +169,8 @@ if __name__ == "__main__":
 
     mean, conf = mean_confidence_interval(test_accs)
     print(
-        f"BENFORD: mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
+        f"BENFORD: mean {np.mean(test_accs)} std {np.std(test_accs)} "
+        f"95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
     test_accs = []
     args.benford = False
     for seed in args.seeds:
@@ -177,9 +179,10 @@ if __name__ == "__main__":
 
     mean, conf = mean_confidence_interval(test_accs)
     print(
-        f" mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
+        f" mean {np.mean(test_accs)} std {np.std(test_accs)} "
+        f"95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
 
-    fig, (ax, ax1) = plt.subplots(2, 1, figsize=(6, 4.5), sharex=True)
+    fig, (ax, ax1) = plt.subplots(2, 1, figsize=(6, 4.5), sharex='all')
     ax.set_title("validation error")
     ax.plot(val_accs_bl, label="MLP + BL reg")
     ax.plot(val_accs, label="MLP")
