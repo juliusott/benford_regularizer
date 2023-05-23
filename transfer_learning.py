@@ -264,17 +264,3 @@ def main(args):
         np.save(f"{save_dir}test_loss_benford_{args.model}_{args.seed}.npy", np.asarray(val_losssb))
         np.save(f"{save_dir}test_accs_benford_{args.model}_{args.seed}.npy", np.asarray(val_accsb))
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}.npy", np.asarray(benford_epochs))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    available_models = [f'resnet{n}' for n in [18, 34, 50, 101, 152]]
-    seeds = np.random.randint(0, int(1e6), size=(25,))
-    parser.add_argument('--model', default='resnet18', help='model to train', choices=available_models)
-    parser.add_argument('--lr', default=0.001, type=float, help='initial learning rate')
-    parser.add_argument('--epochs', default=50, type=int, help='number of training epochs')
-    parser.add_argument('--seed', default=0, type=int, help='random seed', choices=seeds)
-    parser.add_argument('--early_stop_patience', default=5, type=int, help='early stopping patience')
-    parser.add_argument('--benford', action='store_true')
-
-    args = parser.parse_args()

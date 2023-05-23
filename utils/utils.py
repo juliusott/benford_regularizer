@@ -10,10 +10,17 @@ import sys
 import time
 import numpy as np
 import scipy.stats as stats
+import argparse
 
 import torch.nn as nn
 import torch
 import torch.nn.init as init
+
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
 
 
 def mean_confidence_interval(data, confidence=0.95):

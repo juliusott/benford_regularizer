@@ -43,11 +43,6 @@ def main(args):
     # Data
     print('==> Preparing data..')
 
-    def seed_worker(worker_id):
-        worker_seed = torch.initial_seed() % 2 ** 32
-        np.random.seed(worker_seed)
-        random.seed(worker_seed)
-
     g = torch.Generator()
     g.manual_seed(args.seed)
     set_seed(args.seed)
@@ -72,10 +67,10 @@ def main(args):
     trainset, valset = random_split(dataset, [train_size, val_size])
 
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=128, shuffle=True, num_workers=2, worker_init_fn=seed_worker, generator=g)
+        trainset, batch_size=128, shuffle=True, num_workers=2)
 
     valloader = torch.utils.data.DataLoader(
-        valset, batch_size=100, shuffle=False, num_workers=2, worker_init_fn=seed_worker, generator=g)
+        valset, batch_size=100, shuffle=False, num_workers=2)
 
     testset = torchvision.datasets.CIFAR10(
         root='./data', train=False, download=True, transform=transform_test)
@@ -328,22 +323,3 @@ def main(args):
         np.save(f"{save_dir}benford_epochs_{args.model}_{args.seed}_scale{args.scale}.npy", np.asarray(benford_epochs))
         np.save(f"{save_dir}benford_{args.benford}_kl_{args.model}_{args.seed}_scale{args.scale}.npy",
                 np.asarray(bl_kls))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    available_models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', "renext"]
-    parser.add_argument('--model', default='densenet121', help='model to train', choices=available_models)
-    parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
-    parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
-    parser.add_argument('--seed', default=0, type=int, help='random seed', choices=np.arange(0, 25).tolist())
-    parser.add_argument('--early_stop_patience', default=10, type=int, help='early stopping patience')
-    parser.add_argument('--benford', action='store_true')
-    parser.add_argument('--resume', action='store_true')
-    parser.add_argument('--finetune', action='store_true')
-    parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter', default=10, type=int, help='number of benford iterations')
-
-    args = parser.parse_args()
-
-    main(args=args)

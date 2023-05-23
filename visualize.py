@@ -120,7 +120,7 @@ print(f"BEST {100 - np.amax(test_acc)} benford {100 - np.amax(test_acc_benford)}
 print("all test loss ", test_loss.shape, test_loss_benford.shape)
 print("benford epochs", test_acc_benford_single_seed)
 
-fig, ax = plt.subplots(1, 1, figsize=(6, 4.5), sharey=True)
+fig, ax = plt.subplots(1, 1, figsize=(6, 4.5), sharey="all")
 ax.plot(100 - test_acc_single_seed, label="ERM", color="orange")
 ax.plot(100 - test_acc_benford_single_seed, label="benford regularized")
 ax.set_xlabel("epochs")

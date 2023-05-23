@@ -32,21 +32,21 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
-- ```-- epochs(Optional, default:250``` : implemented algorithms are sac, ddpg, td3
+- ```-- epochs(Optional, default:250``` : number of epochs to train
 
-- ```-- seed (Optional, default:42)``` : random seed for reproducibility
+- ```-- seed (Optional, default:42)``` : random seed for reproducibility between 0 and 1000000
 
 - ```-- early_stop_patience(Optional, default:15)``` : Patience for Benford optimization
 
-- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+- ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
 - ```-- resume (Optional, default:False)``` : Training from checkpoint
 
 - ```-- finetune (Optional, default:False)``` : Training from best model starting with benford iteration
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization 
 
-- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+- ```-- benford_iter (Optional, default:10)``` : Positive number of iterations for the Benford regularization
 
 
 
@@ -65,15 +65,15 @@ python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --se
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
-- ```-- epochs(Optional, default:250``` : implemented algorithms are sac, ddpg, td3
+- ```-- epochs(Optional, default:250``` : number of epochs to train
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
 - ```-- early_stop_patience(Optional, default:10)``` : Patience for Benford optimization
 
-- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+- ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization
 
 - ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
 
@@ -87,15 +87,15 @@ python train_speech_commands.py --epochs 50 --seed 150195
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
-- ```-- epochs(Optional, default:80``` : implemented algorithms are sac, ddpg, td3
+- ```-- epochs(Optional, default:80``` : number of epochs to train
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
 - ```-- early_stop_patience(Optional, default:10)``` : Patience for Benford optimization
 
-- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+- ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization
 
 - ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
 
@@ -109,14 +109,14 @@ python train_iris.py --epochs 50 --seed 150195
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
-- ```-- epochs(Optional, default:50``` : implemented algorithms are sac, ddpg, td3
+- ```-- epochs(Optional, default:50``` : number of epochs to train
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
 - ```-- early_stop_patience(Optional, default:100ß)``` : Patience for Benford optimization
 
-- ```-- benford(Optional, default:False)``` : If Benford optimization should be used
+- ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization if activated
+- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization 
 
 - ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization

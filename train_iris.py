@@ -127,7 +127,7 @@ def main(args, seed=42):
         else:
             train_acc, train_loss = train()
         val_acc, val_loss, bl_kl = eval()
-        val_accs.append(val_loss)
+        val_accs.append(val_acc)
         bl_kls.append(bl_kl)
         if args.benford:
             train_benford = early_stopper.early_stop(val_loss)
@@ -145,15 +145,14 @@ def main(args, seed=42):
 
 if __name__ == "__main__":
     import argparse
-
+    from utils.utils import check_positive
     parser = argparse.ArgumentParser(description='PyTorch IRIS')
     parser.add_argument('--lr', default=0.05, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=1000, type=int, help='number of training epochs')
-    parser.add_argument('--seed', nargs='*', type=int)
+    parser.add_argument('--seed', nargs='*', type=int, choices=np.arange(0,int(1e6)).tolist())
     parser.add_argument('--early_stop_patience', default=5, type=int, help='early stopping patience')
-    parser.add_argument('--benford', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter', default=10, type=int, help='number of benford iterations')
+    parser.add_argument('--benford_iter', default=10, type=check_positive, help='number of benford iterations')
 
     args = parser.parse_args()
 
@@ -161,6 +160,7 @@ if __name__ == "__main__":
         args.seed = np.random.randint(0, int(1e6), size=(25,))
 
     test_accs = []
+    args.benford = True
     for seed in args.seed:
         print(seed)
         test_acc, val_accs_bl, bl_kls_bl, benford_epochs = main(args, seed=seed)
@@ -170,8 +170,9 @@ if __name__ == "__main__":
     print(
         f"BENFORD: mean {np.mean(test_accs)} std {np.std(test_accs)} 95% {conf} best {np.amax(test_accs)} worst {np.amin(test_accs)}")
     test_accs = []
+    args.benford = False
     for seed in args.seeds:
-        test_acc, val_accs, bl_kls, _ = main(benford=False, seed=seed)
+        test_acc, val_accs, bl_kls, _ = main(args, seed=seed)
         test_accs.append(test_acc)
 
     mean, conf = mean_confidence_interval(test_accs)
