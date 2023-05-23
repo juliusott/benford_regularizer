@@ -113,7 +113,7 @@ def main(args):
         for _ in range(args.benfor_iter):
             net.train()
             optimizer2.zero_grad()
-            q_loss = quantile_loss(model=net, device=device, n_quantiles=n_quantiles)
+            q_loss = quantile_loss(model=net, device=device)
             q_loss.backward()
             optimizer2.step()
             bl_kl = compute_kl(net)
