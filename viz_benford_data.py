@@ -1,11 +1,11 @@
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.fftpack import dct
 import torch
-import torchvision
 import torchvision.transforms as transforms
+from scipy.fftpack import dct
+
 from utils.speechcommands import SubsetSC, data_processing
-import matplotlib as mpl
 
 mpl.style.use("seaborn-deep")
 font = {'family': 'normal',

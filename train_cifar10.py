@@ -1,26 +1,20 @@
-'''Train CIFAR10 with PyTorch.'''
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
-from torch.utils.data import random_split
+"""Train CIFAR10 with PyTorch."""
+import os
+import random
 
+import numpy as np
+import torch.backends.cudnn as cudnn
+import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from models.preact_resnet import PreActResNet101, PreActResNet50
-from models.densenet import DenseNet121, DenseNet169, DenseNet201
-from models.resnext import ResNeXt29_2x64d
-from utils.utils import EarlyStopper
-import os
-import argparse
-from utils.benford_regularizer import quantile_loss, compute_kl
+from torch.utils.data import random_split
+
 from models.densenet import *
 from models.preact_resnet import *
 from models.resnext import *
+from utils.benford_regularizer import quantile_loss, compute_kl
+from utils.utils import EarlyStopper
 from utils.utils import progress_bar
-import numpy as np
-import random
 
 
 def set_seed(seed: int = 42) -> None:

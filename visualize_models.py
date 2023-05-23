@@ -1,19 +1,17 @@
-import torchvision
-import torchvision.transforms as transforms
-import numpy as np
-from models.preact_resnet import PreActResNet101, PreActResNet50
-from models.densenet import DenseNet121, DenseNet169
-from models.resnext import ResNeXt29_2x64d
-from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
-import torch.nn.functional as F
-import torch.nn as nn
 import argparse
-from benford_regularizer import bin_percent
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-
-import torch
 import os
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+from benford_regularizer import bin_percent
+from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
+
+from models.densenet import DenseNet121, DenseNet169
+from models.preact_resnet import PreActResNet101, PreActResNet50
+from models.resnext import ResNeXt29_2x64d
 
 mpl.style.use("seaborn-deep")
 font = {'family' : 'normal',

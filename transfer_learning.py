@@ -1,21 +1,22 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.backends.cudnn as cudnn
-
-import torchvision
-import torchvision.transforms as transforms
-from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
-from torch.utils.data import random_split
-# from torchvision.models import ResNet18_Weights, ResNet34_Weights, ResNet50_Weights
-# from torchvision.models import ResNet101_Weights, ResNet152_Weights
+import os
+import random
 
 import numpy as np
-import random
-import argparse
-import os
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import random_split
+from torchvision.models import resnet18, resnet34, resnet50, resnet101, resnet152
+
 from utils.benford_regularizer import quantile_loss, compute_kl
 from utils.utils import progress_bar, EarlyStopper
+
+
+# from torchvision.models import ResNet18_Weights, ResNet34_Weights, ResNet50_Weights
+# from torchvision.models import ResNet101_Weights, ResNet152_Weights
 
 
 def set_seed(seed: int = 42) -> None:

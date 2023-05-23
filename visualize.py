@@ -1,8 +1,10 @@
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import numpy as np
 import os
 import sys
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
 from utils.utils import mean_confidence_interval
 
 mpl.style.use("seaborn-deep")

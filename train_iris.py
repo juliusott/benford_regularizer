@@ -1,14 +1,13 @@
-import numpy as np
-from matplotlib import pyplot as plt
 import matplotlib as mpl
-
+import numpy as np
+import torch
+from matplotlib import pyplot as plt
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-
-import torch
 from torch import nn
 from torch import optim
 from torch.utils.data import TensorDataset, DataLoader
+
 from utils.benford_regularizer import compute_kl, quantile_loss
 from utils.utils import EarlyStopper
 from utils.utils import mean_confidence_interval
