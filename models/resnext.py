@@ -74,24 +74,24 @@ class ResNeXt(nn.Module):
         return out
 
 
-def ResNeXt29_2x64d():
-    return ResNeXt(num_blocks=[3, 3, 3], cardinality=2, bottleneck_width=64)
+def ResNeXt29_2x64d(num_classes):
+    return ResNeXt(num_blocks=[3, 3, 3], cardinality=2, bottleneck_width=64, num_classes=num_classes)
 
 
-def ResNeXt29_4x64d():
-    return ResNeXt(num_blocks=[3, 3, 3], cardinality=4, bottleneck_width=64)
+def ResNeXt29_4x64d(num_classes):
+    return ResNeXt(num_blocks=[3, 3, 3], cardinality=4, bottleneck_width=64, num_classes=num_classes)
 
 
-def ResNeXt29_8x64d():
-    return ResNeXt(num_blocks=[3, 3, 3], cardinality=8, bottleneck_width=64)
+def ResNeXt29_8x64d(num_classes):
+    return ResNeXt(num_blocks=[3, 3, 3], cardinality=8, bottleneck_width=64, num_classes=num_classes)
 
 
-def ResNeXt29_32x4d():
-    return ResNeXt(num_blocks=[3, 3, 3], cardinality=32, bottleneck_width=4)
+def ResNeXt29_32x4d(num_classes):
+    return ResNeXt(num_blocks=[3, 3, 3], cardinality=32, bottleneck_width=4, num_classes=num_classes)
 
 
 def test_resnext():
-    net = ResNeXt29_2x64d()
+    net = ResNeXt29_2x64d(num_classes=10)
     x = torch.randn(1, 3, 32, 32)
     y = net(x)
     print(y.size())
