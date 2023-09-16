@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
     parser.add_argument('--model', nargs='*', type=str, help='model to train', choices=models)
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
-    parser.add_argument('--epochs', default=250, type=int, help='number of training epochs')
+    parser.add_argument('--epochs', default=100, type=int, help='number of training epochs')
     parser.add_argument('--seed', nargs='*', type=int, choices=np.arange(0, int(1e6)).tolist())
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
