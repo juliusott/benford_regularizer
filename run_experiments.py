@@ -19,9 +19,9 @@ if __name__ == "__main__":
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--exclude_bias', type=bool, default=False)
-    parser.add_argument('--benford_iter', default=100, type=check_positive, help='number of epochs when benford starts')
+    parser.add_argument('--benford_iter', default=100, type=check_positive, help='number of epoch when benford starts')
     parser.add_argument('--dataset', type=str, default="cifar10", choices=["cifar10", "cifar100"])
-    parser.add_argument('--data_size', type=float, default=1.0, help='dataset size in percenteage')
+    parser.add_argument('--data_size', type=float, default=1.0, help='dataset size in percentage')
 
     args = parser.parse_args()
 

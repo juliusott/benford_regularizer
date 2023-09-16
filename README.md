@@ -13,22 +13,22 @@ The code is tested with
 
 ### Example command for Cifar10 experiments
 ```python
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --data_size 0.9 
 
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --benford --scale 0.1
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --benford --data_size 0.9
 
 ```
 
 ### Example command for Cifar10 Finetuning with Benford experiments
 
 ```python
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --scale 0.1
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --scale 0.1 --finetune
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford 
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --finetune
 
 ```
 ### arguments
 
-- ```-- model ``` : 'PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'renext'
+- ```-- model ``` : 'PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'renext', 'vitb16'
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
@@ -44,9 +44,9 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 
 - ```-- finetune (Optional, default:False)``` : Training from best model starting with benford iteration
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization 
+- ```-- benford_iter (Optional, default:10)``` : Positive number of the epoch when benford regularization starts
 
-- ```-- benford_iter (Optional, default:10)``` : Positive number of iterations for the Benford regularization
+-  ```-- data_size (Optional, default:1.0)``` : relative training dataset size
 
 
 
@@ -55,7 +55,7 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 ```python
 python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --seed 150195
 
-python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --seed 150195 --benford --scale 0.1
+python run_experiments_transfer_learning.py --model densenet121 --epochs 50 --seed 150195 --benford 
 
 ```
 
