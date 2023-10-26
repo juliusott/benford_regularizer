@@ -9,8 +9,6 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import random_split
 
-from torchvision.models import vit_b_16
-
 from models.densenet import *
 from models.preact_resnet import *
 from models.resnext import *
@@ -62,34 +60,17 @@ def main(args):
         std = (0.2675, 0.2565, 0.2761)
         args.num_classes = 100
 
-    if "vit" in args.model:
-        transform_train = transforms.Compose([
-            transforms.RandomResizedCrop((224,224), scale=(0.08,  1.0)),
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.RandAugment(0, 9),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std)
+    ])
 
-        ])
-
-        transform_test = transforms.Compose([
-            transforms.Resize((224,224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-
-    else:
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ])
-
-        transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std),
-        ])
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+    ])
 
     if args.dataset == "cifar10":
         dataset = torchvision.datasets.CIFAR10(
@@ -149,8 +130,24 @@ def main(args):
         net = DenseNet201(num_classes = args.num_classes)
     elif args.model == "renext":
         net = ResNeXt29_2x64d(num_classes = args.num_classes)
-    elif args.model == 'vitb16':
-        net = vit_b_16(num_classes = args.num_classes)
+    elif args.model == 'vit':
+        from models.vit_small import ViT
+        net = ViT(
+                    image_size = 32,
+                    patch_size = 4,
+                    num_classes = args.num_classes,
+                    dim = 512,
+                    depth = 4,
+                    heads = 6,
+                    mlp_dim = 256,
+                    dropout = 0.1,
+                    emb_dropout = 0.1
+                )
+    elif args.net=="swin":
+        from models.swin import swin_t
+        net = swin_t(window_size=4,
+                    num_classes=args.num_classes,
+                    downscaling_factors=(2,2,2,1))
     else:
         raise NotImplementedError
 
@@ -178,15 +175,14 @@ def main(args):
 
     
 
-    if "vit" in args.model:
-        optimizer = optim.SGD(net.parameters(), lr=1e-2, momentum=0.9, weight_decay=0.0)
-        criterion = SoftTargetCrossEntropy()
+    if "vit" in args.model or "swin" in args.model:
+        optimizer = optim.Adam(net.parameters(), lr=1e-4)
     else:
-        optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(net.parameters(), lr=1e-3, momentum=0.9, weight_decay=5e-4)
+    criterion = nn.CrossEntropyLoss()
 
-    if "vit" in args.model:
-        scheduler = get_cosine_schedule_with_warmup(optimizer, num_training_steps=282, num_warmup_steps=10)
+    if "vit" in args.model or "swin" in args.model:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
     else:
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2)
 
@@ -220,11 +216,7 @@ def main(args):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
-            if "vit" in args.model:
-                y_hat = F.one_hot(targets, num_classes=args.num_classes)
-            else:
-                y_hat = targets
-            loss = criterion(outputs, y_hat)
+            loss = criterion(outputs, targets)
             if args.benford and epoch > args.benford_iter:
                 for name, param in net.named_parameters():
                     if "bias" not in name and args.exclude_bias:
@@ -240,6 +232,7 @@ def main(args):
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+            
         scheduler.step()
 
         return train_loss / total, 100 * correct / total
@@ -254,11 +247,8 @@ def main(args):
             for batch_idx, (inputs, targets) in enumerate(valloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
-                if "vit" in args.model:
-                    y_hat = F.one_hot(targets, num_classes=args.num_classes)
-                else:
-                    y_hat = targets
-                loss = criterion(outputs, y_hat)
+
+                loss = criterion(outputs, targets)
 
                 test_loss += loss.item()
                 _, predicted = outputs.max(1)
@@ -305,11 +295,8 @@ def main(args):
             for batch_idx, (inputs, targets) in enumerate(testloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
-                if "vit" in args.model:
-                    y_hat = F.one_hot(targets, num_classes=args.num_classes)
-                else:
-                    y_hat = targets
-                loss = criterion(outputs, y_hat)
+
+                loss = criterion(outputs, targets)
 
                 test_loss += loss.item()
                 _, predicted = outputs.max(1)
@@ -339,9 +326,9 @@ def main(args):
             np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}.npy",
                     np.asarray(bl_kls))
 
-        test_acc, test_loss = test()
-        print(f"test acc {test_acc}, test_loss {test_loss}")
-        np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
-        np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_losss))
-        np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_accs))
-        np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(bl_kls))
+    test_acc, test_loss = test()
+    print(f"test acc {test_acc}, test_loss {test_loss}")
+    np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
+    np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_losss))
+    np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_accs))
+    np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(bl_kls))
