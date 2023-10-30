@@ -143,7 +143,7 @@ def main(args):
                     dropout = 0.1,
                     emb_dropout = 0.1
                 )
-    elif args.net=="swin":
+    elif args.model == "swin":
         from models.swin import swin_t
         net = swin_t(window_size=4,
                     num_classes=args.num_classes,
