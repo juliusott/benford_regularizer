@@ -15,7 +15,6 @@ from models.resnext import *
 from utils.benford_regularizer import quantile_loss, compute_kl
 from utils.utils import EarlyStopper
 from utils.utils import progress_bar
-from transformers import get_cosine_schedule_with_warmup
 
 class SoftTargetCrossEntropy(nn.Module):
     def __init__(self) -> None:
