@@ -110,7 +110,7 @@ def main(args):
     if args.finetune:
         save_dir = f'./experiments/{args.model}_from_checkpoint/'
     else:
-        save_dir = f'./experiments/{args.model}/'
+        save_dir = f'./experiments/{args.model}_{args.dataset}/'
 
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
@@ -272,7 +272,7 @@ def main(args):
             }
             if not os.path.isdir(f'{save_dir}checkpoint'):
                 os.mkdir(f'{save_dir}checkpoint')
-            torch.save(state, f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
+            torch.save(state, f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}_size{args.data_size}.pth')
             best_acc = acc
         bl_kl = compute_kl(net)
 
@@ -320,15 +320,15 @@ def main(args):
         val_accs.append(val_acc)
         bl_kls.append(bl_kl)
         if epoch % 10 == 0:
-            np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy", np.asarray(val_losss))
-            np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy", np.asarray(val_accs))
-            np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy",
+            np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL_{args.benford}_data_size{args.data_size}.npy", np.asarray(val_losss))
+            np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL_{args.benford}_data_size{args.data_size}.npy", np.asarray(val_accs))
+            np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL_{args.benford}_data_size{args.data_size}.npy",
                     np.asarray(bl_kls))
 
     test_acc, test_loss = test()
     print(f"test acc {test_acc}, test_loss {test_loss}")
     np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}_data_size_{args.data_size}.npy", np.asarray([test_acc, test_loss]))
-    np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_losss))
-    np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_accs))
-    np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy",
+    np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_losss))
+    np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_accs))
+    np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy",
                     np.asarray(bl_kls))
