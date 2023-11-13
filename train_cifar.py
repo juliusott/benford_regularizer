@@ -157,7 +157,7 @@ def main(args):
         n_layers += 1
     model_weights = torch.cat(model_weights, dim=0)
 
-    args.scale = 1/n_layers * 0.005
+    args.scale = 1/n_layers * 0.0005
 
     print(f"number of parameters {int(model_weights.shape[0])}")
 
