@@ -75,34 +75,12 @@ transform = transforms.Compose([
 ])
 
 if __name__ == "__main__":
-    # dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)
-    import torchaudio
-
-    dataset = SubsetSC(".\data", "training")
-    print(len(dataset))
-
-    labels = ['backward', 'bed', 'bird', 'cat', 'dog', 'down', 'eight', 'five', 'follow',
-              'forward', 'four', 'go', 'happy', 'house', 'learn', 'left', 'marvin', 'nine',
-              'no', 'off', 'on', 'one', 'right', 'seven', 'sheila', 'six', 'stop', 'three',
-              'tree', 'two', 'up', 'visual', 'wow', 'yes', 'zero']
-    n_class = len(labels)
-    n_fft = 512
-    hop_length = 128
-    n_feat = n_fft // 2 + 1
-    stft_transform = torchaudio.transforms.Spectrogram(n_fft=n_fft, hop_length=hop_length, power=None)
-
-    dataloader = torch.utils.data.DataLoader(dataset=dataset,
-                                             batch_size=1,
-                                             shuffle=True,
-                                             collate_fn=lambda x: data_processing(x, 'train', labels, stft_transform,
-                                                                                  None))
-
-    # print(dataloader[0])
-
-    # digits = get_digits(dataloader)
     mean_images = (cifar100_dct + cifar10_dct + mnist_dct + speech_fft) / 4
     print(np.arange(1, 10), benford)
-    fig, ax = plt.subplots(figsize=(6, 4.5))
+    plt.style.use('seaborn-whitegrid')
+    fig, ax = plt.subplots(figsize=(6, 5))
+    plt.autoscale()
+    fig.tight_layout()
     ax.hist(np.arange(1, 10), bins=9, weights=benford * 100, label="Benford's Law")
     ax.plot(np.arange(1, 10), cifar10_dct * 100, label="DCT Cifar10", marker="<", alpha=0.6)
     ax.plot(np.arange(1, 10), cifar100_dct * 100, label="DCT Cifar100", marker=">", alpha=0.6)
@@ -111,7 +89,7 @@ if __name__ == "__main__":
     ax.plot(np.arange(1, 10), mean_images * 100, label="All Datasets", marker="o", color="red")
     ax.set_xlabel("digit $n$")
     ax.set_ylabel("Occurence of digit $n$ as first digit in $\%$")
-    plt.legend()
-    fig.savefig("datasets.pdf")
+    ax.legend(bbox_transform=fig.transFigure, fancybox=True, shadow=True, frameon=True)
+    fig.savefig("datasets.pdf", bbox_inches="tight")
     plt.show()
     # print(digits)

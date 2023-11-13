@@ -320,14 +320,15 @@ def main(args):
         val_accs.append(val_acc)
         bl_kls.append(bl_kl)
         if epoch % 10 == 0:
-            np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_losss))
-            np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_accs))
-            np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}.npy",
+            np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy", np.asarray(val_losss))
+            np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy", np.asarray(val_accs))
+            np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}_data_size{args.data_size}.npy",
                     np.asarray(bl_kls))
 
     test_acc, test_loss = test()
     print(f"test acc {test_acc}, test_loss {test_loss}")
-    np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}.npy", np.asarray([test_acc, test_loss]))
-    np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_losss))
-    np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(val_accs))
-    np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}.npy", np.asarray(bl_kls))
+    np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}_data_size_{args.data_size}.npy", np.asarray([test_acc, test_loss]))
+    np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_losss))
+    np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_accs))
+    np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL:{args.benford}_data_size_{args.data_size}.npy",
+                    np.asarray(bl_kls))
