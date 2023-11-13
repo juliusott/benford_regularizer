@@ -280,7 +280,7 @@ def main(args):
 
     def test():
         # Compute the test metric for the model with the best validation score
-        checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}.pth')
+        checkpoint = torch.load(f'{save_dir}checkpoint/ckpt_{args.model}_{args.seed}{args.benford}_size{args.data_size}.pth')
         model_state_dict = checkpoint['model_state_dict']
         model_state_dict = {key.replace("module.", ""): value for key, value in model_state_dict.items()}
         if isinstance(net, nn.DataParallel):
