@@ -327,7 +327,7 @@ def main(args):
 
     test_acc, test_loss = test()
     print(f"test acc {test_acc}, test_loss {test_loss}")
-    np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}_data_size_{args.data_size}.npy", np.asarray([test_acc, test_loss]))
+    np.save(f"{save_dir}test_loss_acc_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy", np.asarray([test_acc, test_loss]))
     np.save(f"{save_dir}test_loss_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_losss))
     np.save(f"{save_dir}test_accs_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy", np.asarray(val_accs))
     np.save(f"{save_dir}benford_kl_{args.model}_{args.seed}_BL_{args.benford}_data_size_{args.data_size}.npy",
