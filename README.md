@@ -65,13 +65,13 @@ python train_speech_commands.py --epochs 50 --seed 150195
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
-- ```-- early_stop_patience(Optional, default:10)``` : Patience for Benford optimization
-
 - ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization
+- ```-- scale(Optional, default:0.01)``` : scaling factor for quantile regression loss
 
-- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+- ```-- benford_iter (Optional, default:-1)``` : Number of iterations before the Benford regularization
+
+-  ```-- data_size (Optional, default:1.0)``` : relative training dataset size
 
 ### Example command for training on the IRIS dataset
 ```python
@@ -87,10 +87,8 @@ python train_iris.py --epochs 50 --seed 150195
 
 - ```-- seed (Optional, default:42)``` : random seed for reproducibility
 
-- ```-- early_stop_patience(Optional, default:100ß)``` : Patience for Benford optimization
-
 - ```-- benford(Optional, default:False)``` : Boolean to if Benford optimization should be used
 
-- ```-- scale (Optional, default:1)``` : Scaling the Benford Optimization 
+- ```-- scale (Optional, default:1)``` : scaling factor for quantile regression loss 
 
-- ```-- benford_iter (Optional, default:10)``` : Number of iterations for the Benford regularization
+- ```-- benford_iter (Optional, default:-1)``` : Number of iterations before the Benford regularization
