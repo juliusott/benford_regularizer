@@ -28,7 +28,7 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resum
 ```
 ### arguments
 
-- ```-- model ``` : 'PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'renext', 'vitb16'
+- ```-- model ``` : 'PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'renext', 'vit', 'swin'
 
 - ```-- lr (Optional, default:0.1)``` : inital learning rate
 
