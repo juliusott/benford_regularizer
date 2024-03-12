@@ -92,3 +92,5 @@ python train_iris.py --epochs 50 --seed 150195
 - ```-- scale (Optional, default:1)``` : scaling factor for quantile regression loss 
 
 - ```-- benford_iter (Optional, default:-1)``` : Number of iterations before the Benford regularization
+
+-  ```-- data_size (Optional, default:1.0)``` : relative training dataset size
