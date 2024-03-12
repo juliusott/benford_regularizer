@@ -22,8 +22,7 @@ python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --benfo
 ### Example command for Cifar10 Finetuning with Benford experiments
 
 ```python
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford 
-python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --resume --benford --finetune
+python run_experiments.py --model densenet121 --epochs 250 --seed 150195 --benford --scale 0.0001
 
 ```
 ### arguments
