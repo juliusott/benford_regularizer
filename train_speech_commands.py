@@ -1,3 +1,5 @@
+"""Adjusted Code from https://pytorch.org/tutorials/intermediate/speech_command_classification_with_torchaudio_tutorial.html"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -176,6 +178,13 @@ def main(args):
             inputs = transform(inputs)
             outputs = net(inputs)
             loss = F.nll_loss(outputs.squeeze(), targets)
+            if args.benford: 
+                for name,  parameter in net.named_parameters():
+                    quant_loss = quantile_loss(torch.flatten(parameter), device)
+                    if torch.abs(quant_loss) <= 0.03:
+                        quantile_loss = torch.zeros(quant_loss.shape)
+                    if not torch.isnan(quant_loss ):
+                        loss += args.scale * quant_loss
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
@@ -189,18 +198,6 @@ def main(args):
 
         return train_loss / total, 100 * correct / total
 
-    def train_bl(epoch, n_quantiles, scale=1):
-        optimizer2 = optim.Adam(net.parameters(), lr=1e-3)
-        for i in range(args.benford_iter):
-            net.train()
-            optimizer2.zero_grad()
-            q_loss = quantile_loss(model=net, device=device) * scale
-            q_loss.backward()
-            optimizer2.step()
-            bl_kl = compute_kl(net)
-            progress_bar(i, 10, 'Loss: %.3f '
-                         % bl_kl)
-        return bl_kl
 
     def eval(best_acc, best_state_dict):
         net.eval()
@@ -286,19 +283,11 @@ def main(args):
 
         val_losssb, val_accsb, bl_kls = [], [], []
         benford_epochs = []
-        train_benford = False
-        if args.resume:
-            train_benford = True
 
         for epoch in range(0, args.epochs):
-            if train_benford:
-                bl_kl = train_bl(epoch, n_quantiles=100000, scale=args.scale)
-                benford_epochs.append(epoch)
-            else:
-                train_loss, train_acc = train(epoch)
+            train_loss, train_acc = train(epoch)
             val_acc, val_loss, best_acc, bl_kl, best_state_dict = eval(best_acc, best_state_dict)
             scheduler.step()
-            train_benford = early_stopper.early_stop(val_loss)
             val_losss.append(val_loss)
             val_accs.append(val_acc)
             bl_kls.append(bl_kl)
@@ -321,11 +310,9 @@ if __name__ == "__main__":
     parser.add_argument('--lr', default=0.1, type=float, help='initial learning rate')
     parser.add_argument('--epochs', default=200, type=int, help='number of training epochs')
     parser.add_argument('--seed', nargs='*', type=int, choices=np.arange(0,int(1e6)).tolist())
-    parser.add_argument('--early_stop_patience', default=10, type=int, help='early stopping patience')
     parser.add_argument('--benford', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--scale', default=1, type=float, help='scaling factor for the benford optimization')
-    parser.add_argument('--benford_iter', default=10, type=check_positive, help='number of benford iterations')
 
     args = parser.parse_args()
 

@@ -1,4 +1,5 @@
 """Train CIFAR with PyTorch."""
+"""Transformer implementation from https://github.com/kentaroy47/vision-transformers-cifar10"""
 import os
 import random
 
@@ -214,14 +215,13 @@ def main(args):
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = criterion(outputs, targets)
-            if args.benford:
-                for name, param in net.named_parameters():
-                    quantile_loss = args.scale * quantile_loss(torch.flatten(param), device)
-                    
-                    if quantile_loss <= 0.03: # apply the error bound
-                        quantile_loss = torch.zeros(loss.shape)
-                    
-                    loss += quantile_loss
+            if args.benford: 
+                for name,  parameter in net.named_parameters():
+                    quant_loss = quantile_loss(torch.flatten(parameter), device)
+                    if torch.abs(quant_loss) <= 0.03:
+                        quantile_loss = torch.zeros(quant_loss.shape)
+                    if not torch.isnan(quant_loss ):
+                        loss += args.scale * quant_loss
             loss.backward()
             optimizer.step()
             train_loss += loss.item()

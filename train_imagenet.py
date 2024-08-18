@@ -1,4 +1,6 @@
 '''Train Imagenet with PyTorch.'''
+"""Implementation from https://github.com/pytorch/examples/tree/main/imagenet"""
+"""Imagenet submission code from https://github.com/TheoBourdais/ImageNetSubmission"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -45,7 +47,7 @@ from utils import Dataset_with_indices
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Subset
 import numpy as np
-from ImageNetSubmission.src.utils import TestDataset, get_test_submission
+# from ImageNetSubmission.src.utils import TestDataset, get_test_submission
 
 
 model_names = sorted(name for name in models.__dict__
@@ -98,11 +100,9 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 parser.add_argument('--model', default='densenet121', help='model to train', choices=model_names)
 parser.add_argument('--seeds', nargs='*', type=int)
-parser.add_argument('--exclude_bias', type=bool, default=False)
 parser.add_argument('--benford', action='store_true')
-parser.add_argument('--K', default=1.0, type=float, help='subset percentage')
-parser.add_argument('--benford_iter', default=-1, type=int, help='epoch after which the benford regularization would start')
-parser.add_argument('--scale', default=0.001, type=float, help="scaling of benford loss")
+parser.add_argument('--data_size', default=1.0, type=float, help='subset percentage')
+parser.add_argument('--scale', default=1e-6, type=float, help="scaling of benford loss")
 
 
 os.environ["TORCH_HOME"] = "./.torch_cache/"
@@ -302,11 +302,10 @@ def main_worker(gpu, ngpus_per_node, args):
     args.num_classes = 1000
 
     dataset = load_dataset("evanarlian/imagenet_1k_resized_256", cache_dir="./data/imagenet").load_from_disk("./data/imagenet/")
-    print("data keys", dataset.keys())
 
-    if args.K < 1:
+    if args.data_size < 1:
 
-        train_dataset = load_dataset("evanarlian/imagenet_1k_resized_256", cache_dir="./data/", split=f"train[:{int(args.K*100)}%]").load_from_disk("./data/imagenet/").with_format("torch")
+        train_dataset = load_dataset("evanarlian/imagenet_1k_resized_256", cache_dir="./data/", split=f"train[:{int(args.data_size*100)}%]").load_from_disk("./data/imagenet/").with_format("torch")
     else:
 
         train_dataset = dataset["train"]
@@ -317,14 +316,14 @@ def main_worker(gpu, ngpus_per_node, args):
     val_dataset.set_transform(transform=transform_val_fn)
     test_dataset.set_transform(transform=transform_val_fn)
 
-    test_dataset = TestDataset("./data/imagenet_test/", transform = transform_test)
+    # test_dataset = TestDataset("./data/imagenet_test/", transform = transform_test) # Download the submission code and iamgenet test Dataet into the ./data/ folder
     
 
-    save_dir = f'./experiments/imagenet_{args.model}_benford_{args.benford}_subset_{args.K}'
+    save_dir = f'./experiments/imagenet_{args.model}_benford_{args.benford}_subset_{args.data_size}'
     if args.benford:
-        log_dir = f'./logs/imagenet/{args.model}_benford_{args.benford}_subset_{args.K}_{args.scale}'
+        log_dir = f'./logs/imagenet/{args.model}_benford_{args.benford}_subset_{args.data_size}_{args.scale}'
     else:
-        log_dir = f'./logs/imagenet/{args.model}_benford_{args.benford}_subset_{args.K}'
+        log_dir = f'./logs/imagenet/{args.model}_benford_{args.benford}_subset_{args.data_size}'
 
     args.seed = torch.seed()
 
@@ -359,10 +358,12 @@ def main_worker(gpu, ngpus_per_node, args):
         num_workers=args.workers, pin_memory=True, sampler=test_sampler)
 
     if args.evaluate:
+        """uncomment for submission to the imagenet evaluation server. 
+        The code assumes that the necessary code is downloaded form the link above"""
         filename = args.resume.replace(".pth", ".txt")
         validate(val_loader, model, criterion, args)
-        submission = get_test_submission(model, test_loader, device)
-        submission.to_csv(filename, index=False, header=False, sep=" ")
+        # submission = get_test_submission(model, test_loader, device)
+        # submission.to_csv(filename, index=False, header=False, sep=" ")
         return
 
     for epoch in range(args.start_epoch, args.epochs):
@@ -427,13 +428,13 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args):
         output = model(images)
         loss = criterion(output, target)
 
-        if args.benford and epoch >= args.benford_iter: 
+        if args.benford: 
             for name,  parameter in model.named_parameters():
-                quantile_loss = layerwise_quantile_loss(torch.flatten(parameter), device)
-                if torch.abs(quantile_loss) <= 0.03:
-                    quantile_loss = torch.zeros(quantile_loss.shape)
-                if not torch.isnan(quantile_loss ):
-                    loss += args.scale * quantile_loss
+                quant_loss = quantile_loss(torch.flatten(parameter), device)
+                if torch.abs(quant_loss) <= 0.03:
+                    quantile_loss = torch.zeros(quant_loss.shape)
+                if not torch.isnan(quant_loss ):
+                    loss += args.scale * quant_loss
 
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
