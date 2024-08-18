@@ -214,12 +214,9 @@ def main(args):
             optimizer.zero_grad()
             outputs = net(inputs)
             loss = criterion(outputs, targets)
-            if args.benford and epoch > args.benford_iter:
+            if args.benford:
                 for name, param in net.named_parameters():
-                    if "bias" not in name and args.exclude_bias:
-                        quantile_loss = args.scale * quantile_loss(torch.flatten(param), device)
-                    else:
-                        quantile_loss = args.scale * quantile_loss(torch.flatten(param), device)
+                    quantile_loss = args.scale * quantile_loss(torch.flatten(param), device)
                     
                     if quantile_loss <= 0.03: # apply the error bound
                         quantile_loss = torch.zeros(loss.shape)
