@@ -3,7 +3,6 @@ import argparse
 import numpy as np
 
 from train_cifar import main
-from utils.utils import check_positive
 
 models = ['PreActresnet101', 'PreActresnet50', 'densenet121', 'densenet169', 'densenet201', 'renext', 'vit', 'swin']
 
